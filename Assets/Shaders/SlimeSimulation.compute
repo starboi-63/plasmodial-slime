@@ -1,0 +1,25 @@
+#pragma kernel UpdateSlimeSimulation
+#pragma kernel PaintSlimeSimulation
+
+// redefine necessary structs
+struct SlimeAgent {
+    float2 position;
+    // add more attributes as necessary
+}
+
+RWStructuredBuffer<SlimeAgent> _SlimeAgents;
+StructuredBuffer<float> _TrailMap;
+
+[numthreads(16,1,1)]
+void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: update the state of slime agents based on the trail map
+}
+
+RWStructuredBuffer<float4> _ColorBuffer;
+
+[numthreads(8,8,1)]
+void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: update the color buffer to 'render' the scene
+}
