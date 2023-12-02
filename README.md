@@ -7,11 +7,11 @@ Praccho Muna-McQuay, Alaina Lin, Tanish Makadia
 1. Install [Unity 2022.3.14f1](https://unity.com/releases/editor/whats-new/2022.3.14)
 2. Click Play?
 
-## Project Structure
-
-In Assets/Scripts:
+## Project Structure (modify as needed)
 
 ### C# Files
+
+In `Assets/Scripts`:
 
 - `SlimeSimulation.cs`: main entry point running the simulation
 - `SlimeSettings.cs`: global settings for the simulation
@@ -20,4 +20,6 @@ In Assets/Scripts:
 
 ### Compute Shaders
 
-- TBD (need to render scene and do per-agent calculations)
+In `Assets/Shaders`:
+
+- `SlimeSimulation.compute`: two entry points, one for updating agent data, and one for updating rendered color data
