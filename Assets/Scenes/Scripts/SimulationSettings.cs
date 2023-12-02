@@ -1,0 +1,1 @@
+// Global slime simulation settings
