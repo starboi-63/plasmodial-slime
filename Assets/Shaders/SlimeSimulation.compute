@@ -1,25 +1,64 @@
 #pragma kernel UpdateSlimeSimulation
 #pragma kernel PaintSlimeSimulation
+#pragma kernel ClearTextures
 
 // redefine necessary structs
 struct SlimeAgent {
     float2 position;
+    float angle;
     // add more attributes as necessary
-}
+};
 
-RWStructuredBuffer<SlimeAgent> _SlimeAgents;
-StructuredBuffer<float> _TrailMap;
+RWTexture2D<float4> OutTexture;
+RWTexture2D<float4> TrailMap;
+int width;
+int height;
+
+RWStructuredBuffer<SlimeAgent> slimeAgents;
+uint numAgents;
+
+float dt;
+
+float clamp(float num, float lower, float upper)
+{
+    return max(lower, min(num, upper));
+}
 
 [numthreads(16,1,1)]
 void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
     // TODO: update the state of slime agents based on the trail map
-}
+    if (id.x >= numAgents) 
+    {
+        return;
+    }
 
-RWStructuredBuffer<float4> _ColorBuffer;
+    SlimeAgent agent = slimeAgents[id.x];
+    float2 dir = float2(cos(agent.angle), sin(agent.angle));
+    float2 nextPos = agent.position + dt * dir;
+
+    if (nextPos.x < 0 || nextPos.x >= width || nextPos.y < 0 || nextPos.y >= height)
+    {
+        nextPos.x = clamp(nextPos.x, 0, width-1);
+        nextPos.y = clamp(nextPos.y, 0, height-1);
+    }
+
+    int2 pxlXY = int2(nextPos);
+    TrailMap[pxlXY] = float4(1.0, 1.0, 1.0, 1.0);
+
+    slimeAgents[id.x].position = nextPos;
+}
 
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: update the color buffer to 'render' the scene
+    // TODO: update the out texture to 'render' the scene
+    OutTexture[id.xy] = TrailMap[id.xy];
+}
+
+[numthreads(8,8,1)]
+void ClearTextures (uint3 id : SV_DispatchThreadID)
+{
+    TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 1);
+    OutTexture[id.xy] = float4(0.0, 0.0, 0.0, 1);
 }

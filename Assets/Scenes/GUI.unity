@@ -464,7 +464,7 @@ GameObject:
   - component: {fileID: 944716568}
   - component: {fileID: 944716567}
   m_Layer: 5
-  m_Name: RawImage
+  m_Name: Viewport
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -535,7 +535,7 @@ GameObject:
   - component: {fileID: 1154561990}
   - component: {fileID: 1154561989}
   m_Layer: 0
-  m_Name: RenderSquare
+  m_Name: RenderViewport
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -553,7 +553,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab5b107e1f50e4eea8c0377cb90eb280, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  computeShader: {fileID: 7200000, guid: fe05be85afbf748c99d6b29eacf7e9d0, type: 3}
+  computeShader: {fileID: 7200000, guid: d821ab15dd3564ae98e2d824fc19cc41, type: 3}
   rawImage: {fileID: 944716567}
 --- !u!4 &1154561990
 Transform:
