@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using ComputeUtilities;
-using System.Xml;
-using System.Data.Common;
 
 public class SlimeSimulation : MonoBehaviour
 {
@@ -15,8 +13,9 @@ public class SlimeSimulation : MonoBehaviour
     public ComputeShader computeSim;
 
     const int updateKernel = 0;
-	const int paintKernel = 1;
-    const int clearKernel = 2;
+    const int blurKernel = 1;
+	const int paintKernel = 2;
+    const int clearKernel = 3;
 
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
@@ -41,9 +40,11 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetTexture(clearKernel, "OutTexture", viewportTex);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
 
-        // spawn agents, for now just testing with 1
-        SlimeAgent[] agents = new SlimeAgent[1];
-        agents[0] = new SlimeAgent { position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2), angle = 0.57F };
+        SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
+        for (int i = 0; i < settings.numAgents; i++) {
+            float randAngle = Random.value * 2 * Mathf.PI;
+            agents[i] = new SlimeAgent { position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2), angle = randAngle};
+        }
 
         // passing agent data + other uniforms
         ComputeUtil.CreateBuffer(ref agentBuffer, agents);
@@ -67,7 +68,7 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetFloat("dt", Time.fixedDeltaTime);
 
         // send species related buffers to shader here, for now just using magic values within compute
-        computeSim.Dispatch(updateKernel, 1, 1, 1);
+        computeSim.Dispatch(updateKernel, Mathf.CeilToInt(settings.numAgents / 16.0F), 1, 1);
         computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 

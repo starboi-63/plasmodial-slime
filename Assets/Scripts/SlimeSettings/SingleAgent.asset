@@ -15,3 +15,4 @@ MonoBehaviour:
   numAgents: 1
   vpWidth: 256
   vpHeight: 256
+  simsPerFrame: 10

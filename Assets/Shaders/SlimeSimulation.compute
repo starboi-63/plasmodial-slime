@@ -1,4 +1,5 @@
 #pragma kernel UpdateSlimeSimulation
+#pragma kernel Blur
 #pragma kernel PaintSlimeSimulation
 #pragma kernel ClearTextures
 
@@ -47,6 +48,12 @@ void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
     TrailMap[pxlXY] = float4(1.0, 1.0, 1.0, 1.0);
 
     slimeAgents[id.x].position = nextPos;
+}
+
+[numthreads(8,8,1)]
+void Blur (uint3 id : SV_DispatchThreadID)
+{
+
 }
 
 [numthreads(8,8,1)]
