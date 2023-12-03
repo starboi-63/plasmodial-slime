@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using ComputeUtilities;
+using Unity.VisualScripting;
 
 public class SlimeSimulation : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class SlimeSimulation : MonoBehaviour
 
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
+    public RenderTexture nextTrailMap;
 
     ComputeBuffer agentBuffer;
 
@@ -28,12 +30,15 @@ public class SlimeSimulation : MonoBehaviour
         // Initialize agent, trail, and color buffers
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
+        ComputeUtil.CreateTex(ref nextTrailMap, settings.vpWidth, settings.vpHeight);
 
         viewport.texture = viewportTex;
 
         computeSim.SetTexture(updateKernel, "TrailMap", trailMap);
-        computeSim.SetTexture(paintKernel, "TrailMap",  trailMap);
-        computeSim.SetTexture(paintKernel, "OutTexture", viewportTex);
+        computeSim.SetTexture(blurKernel, "TrailMap", trailMap);
+
+        computeSim.SetTexture(blurKernel, "TrailMap",  trailMap);
+        computeSim.SetTexture(blurKernel, "NextTrailMap", nextTrailMap);
         
         // clearing trail and viewport textures (setting to 0)
         computeSim.SetTexture(clearKernel, "TrailMap",  trailMap);
@@ -63,13 +68,19 @@ public class SlimeSimulation : MonoBehaviour
         }
     }
 
+    void LateUpdate()
+    {
+        Graphics.Blit(nextTrailMap, trailMap);
+    }
+
     void Simulate()
     {
         computeSim.SetFloat("dt", Time.fixedDeltaTime);
 
         // send species related buffers to shader here, for now just using magic values within compute
         computeSim.Dispatch(updateKernel, Mathf.CeilToInt(settings.numAgents / 16.0F), 1, 1);
-        computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        computeSim.Dispatch(blurKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        Graphics.Blit(nextTrailMap, viewportTex);
     }
 
     // Called when the attached Object is destroyed.

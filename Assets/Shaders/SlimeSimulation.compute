@@ -10,8 +10,8 @@ struct SlimeAgent {
     // add more attributes as necessary
 };
 
-RWTexture2D<float4> OutTexture;
 RWTexture2D<float4> TrailMap;
+RWTexture2D<float4> NextTrailMap;
 int width;
 int height;
 
@@ -53,19 +53,34 @@ void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void Blur (uint3 id : SV_DispatchThreadID)
 {
+    float4 prevPxl = TrailMap[id.xy];
+    float4 outPxl = float4(0, 0, 0, 0);
+    
+    for (int i = -1; i < 2; i++) {
+        for (int j = -1; j < 2; j++) {
+            int x = clamp(id.x + i, 0, width-1);
+            int y = clamp(id.y + j, 0, height-1);
+            outPxl += TrailMap[int2(x,y)];
+        }
+    }
 
+    outPxl = outPxl / 9;
+    float diffuseRate = 0.5 * dt;
+    float decayRate = 0.05;
+    outPxl = prevPxl * (1 - diffuseRate) + outPxl * diffuseRate;
+    NextTrailMap[id.xy] = max(0, outPxl - float4(decayRate, decayRate, decayRate, 0));
 }
 
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
     // TODO: update the out texture to 'render' the scene
-    OutTexture[id.xy] = TrailMap[id.xy];
+    // using this for multiple colors
+   // OutTexture[id.xy] = TrailMap[id.xy];
 }
 
 [numthreads(8,8,1)]
 void ClearTextures (uint3 id : SV_DispatchThreadID)
 {
     TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 1);
-    OutTexture[id.xy] = float4(0.0, 0.0, 0.0, 1);
 }
