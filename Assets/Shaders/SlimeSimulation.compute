@@ -66,7 +66,7 @@ void Blur (uint3 id : SV_DispatchThreadID)
 
     outPxl = outPxl / 9;
     float diffuseRate = 0.5 * dt;
-    float decayRate = 0.05;
+    float decayRate = 0.04;
     outPxl = prevPxl * (1 - diffuseRate) + outPxl * diffuseRate;
     NextTrailMap[id.xy] = max(0, outPxl - float4(decayRate, decayRate, decayRate, 0));
 }

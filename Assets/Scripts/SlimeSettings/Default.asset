@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aa054fc266ce456bba05390d06293fa, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: 
-  numAgents: 1
+  numAgents: 100
   vpWidth: 256
   vpHeight: 256
   simsPerFrame: 10
