@@ -69,7 +69,8 @@ float scaleToRange01(uint state)
 float sampleTrail(SlimeAgent agent, float angleOffset) 
 {
     SpeciesSettings agentSettings = species[agent.speciesID];
-    int2 pos = int2(agent.position);
+    float2 dir = float2(cos(agent.angle + angleOffset), sin(agent.angle + angleOffset));
+    int2 pos = int2(agent.position + dir * agentSettings.sensorDist);
 
     int rad = agentSettings.sensorRadius;
 
@@ -139,7 +140,7 @@ void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
     if ((midSample > leftSample) && (midSample > rightSample)) {
         // forward
         slimeAgents[id.x].angle += 0;
-    } else if ((midSample < leftSample) && (midSample > rightSample)) {
+    } else if ((midSample < leftSample) && (midSample < rightSample)) {
         // random
         slimeAgents[id.x].angle += 2 * (turnWeight - 0.5) * turnAngle * dt;
     } else if (leftSample > rightSample) {

@@ -49,8 +49,10 @@ public class SlimeSimulation : MonoBehaviour
 
         SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
         for (int i = 0; i < settings.numAgents; i++) {
-            float randomOffsetX = (float)(Random.value - 0.5) * 100;
-            float randomOffsetY = (float)(Random.value - 0.5) * 100;
+            float randomTheta = (float)(Random.value) * 2 * Mathf.PI;
+            float randomR = (float)(Random.value) * 200;
+            float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
+            float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
             float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
             agents[i] = new SlimeAgent {
                 position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
@@ -98,6 +100,7 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.Dispatch(blurKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
         Graphics.Blit(nextTrailMap, trailMap);
     }
+
 
     // Called when the attached Object is destroyed.
     void OnDestroy()
