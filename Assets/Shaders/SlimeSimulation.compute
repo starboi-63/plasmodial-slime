@@ -8,21 +8,61 @@ struct SlimeAgent {
     float2 position;
     float angle;
     // add more attributes as necessary
+
+    // identifying index into species buffer 
+    int speciesID;
+};
+
+struct SpeciesSettings {
+    float sensorAngle;
+    float rotationAngle; 
+    // should be bigger than sensorAngle to avoid convergence, adjusted by random offset (ranging 0, 45)? in compute shader 
+
+    int sensorDist; 
+    int sensorRadius;
+    float velocity;
+
+    float4 color;
 };
 
 RWTexture2D<float4> TrailMap;
 RWTexture2D<float4> NextTrailMap;
+RWTexture2D<float4> ViewportTex;
 int width;
 int height;
 
 RWStructuredBuffer<SlimeAgent> slimeAgents;
 uint numAgents;
 
+RWStructuredBuffer<SpeciesSettings> species;
+
 float dt;
+
+float4 speciesMask(SlimeAgent agent) {
+    int agentID = agent.speciesID;
+    return float4(agentID == 0, agentID == 1, agentID == 2, agentID == 4);
+}
 
 float clamp(float num, float lower, float upper)
 {
     return max(lower, min(num, upper));
+}
+
+// Hash function www.cs.ubc.ca/~rbridson/docs/schechter-sca08-turbulence.pdf
+uint hash(uint state)
+{
+    state ^= 2747636419u;
+    state *= 2654435769u;
+    state ^= state >> 16;
+    state *= 2654435769u;
+    state ^= state >> 16;
+    state *= 2654435769u;
+    return state;
+}
+
+float scaleToRange01(uint state)
+{
+    return state / 4294967295.0;
 }
 
 [numthreads(16,1,1)]
@@ -50,6 +90,31 @@ void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
     slimeAgents[id.x].position = nextPos;
 }
 
+// sample trails around agent where angleOffset is the offset from the original direction that the agent is traveling in 
+// returning the strength of attraction of the agent towards the offseted angle 
+float sampleTrail(SlimeAgent agent, float angleOffset) 
+{
+    SpeciesSettings agentSettings = species[agent.speciesID];
+    int2 pos = int2(agent.position);
+
+    int rad = agentSettings.sensorRadius;
+
+    float4 strength = 0; 
+    for (int x = -rad; x < rad + 1; x++) {
+        for (int y = -rad; y < rad + 1; y++) {
+            int xPos = clamp(pos.x + x, 0, width - 1);
+            int yPos = clamp(pos.y + y, 0, height - 1);
+
+            strength += TrailMap[int2(xPos, yPos)];
+        }
+    }
+
+    int agentID = agent.speciesID;
+    float4 attractions = 2 * speciesMask(agent) - 1;
+
+    return dot(strength, attractions);
+} 
+
 [numthreads(8,8,1)]
 void Blur (uint3 id : SV_DispatchThreadID)
 {
@@ -74,13 +139,11 @@ void Blur (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: update the out texture to 'render' the scene
-    // using this for multiple colors
-   // OutTexture[id.xy] = TrailMap[id.xy];
+    Out
 }
 
 [numthreads(8,8,1)]
 void ClearTextures (uint3 id : SV_DispatchThreadID)
 {
-    TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 1);
+    TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
 }
