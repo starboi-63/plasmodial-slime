@@ -49,9 +49,11 @@ public class SlimeSimulation : MonoBehaviour
 
         SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
         for (int i = 0; i < settings.numAgents; i++) {
-            float randAngle = Random.value * 2 * Mathf.PI;
+            float randomOffsetX = (float)(Random.value - 0.5) * 100;
+            float randomOffsetY = (float)(Random.value - 0.5) * 100;
+            float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
             agents[i] = new SlimeAgent {
-                position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2),
+                position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
                 angle = randAngle,
                 speciesID = 0
             };

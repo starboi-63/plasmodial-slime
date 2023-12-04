@@ -19,6 +19,7 @@ public class SimulationSettings : ScriptableObject
         public int sensorDist; 
         public int sensorRadius;
         public float velocity;
+        public float trailWeight;
         public Vector4 color;
     };
 

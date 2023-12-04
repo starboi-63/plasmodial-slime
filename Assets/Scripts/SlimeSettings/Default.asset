@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aa054fc266ce456bba05390d06293fa, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: 
-  numAgents: 100
-  vpWidth: 256
-  vpHeight: 256
-  simsPerFrame: 10
-  decayRate: 0.01
+  numAgents: 10000
+  vpWidth: 512
+  vpHeight: 512
+  simsPerFrame: 50
+  decayRate: 0.1
   diffuseRate: 1
   species:
-  - sensorAngle: 0
-    rotationAngle: 0
-    sensorDist: 0
-    sensorRadius: 0
-    velocity: 1
+  - sensorAngle: 0.34
+    rotationAngle: 0.78
+    sensorDist: 9
+    sensorRadius: 3
+    velocity: 3
+    trailWeight: 5
     color: {x: 1, y: 1, z: 1, w: 1}

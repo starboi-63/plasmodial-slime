@@ -18,7 +18,7 @@ struct SpeciesSettings {
     int sensorDist; 
     int sensorRadius;
     float velocity;
-
+    float trailWeight;
     float4 color;
 };
 
@@ -38,9 +38,8 @@ float diffuseRate;
 float dt;
 float time;
 
-float4 speciesMask(SlimeAgent agent) {
-    int agentID = agent.speciesID;
-    return float4(agentID == 0, agentID == 1, agentID == 2, agentID == 4);
+float4 speciesMask(int speciesID) {
+    return float4(speciesID == 0, speciesID == 1, speciesID == 2, speciesID == 4);
 }
 
 float clamp(float num, float lower, float upper)
@@ -65,37 +64,6 @@ float scaleToRange01(uint state)
     return state / 4294967295.0;
 }
 
-[numthreads(16,1,1)]
-void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
-{
-    // TODO: update the state of slime agents based on the trail map
-    if (id.x >= numAgents) 
-    {
-        return;
-    }
-
-    SlimeAgent agent = slimeAgents[id.x];
-    SpeciesSettings agentSettings = species[agent.speciesID];
-
-    int rand = hash(agent.position.y * width + agent.position.x + hash(id.x + time * 100000));
-    
-    float newAngle = agent.angle + 0.1 * (scaleToRange01(rand) - 0.5);
-    float2 dir = float2(cos(newAngle), sin(newAngle));
-    float2 newPos = agent.position + dt * agentSettings.velocity * dir;
-
-    if (newPos.x < 0 || newPos.x >= width || newPos.y < 0 || newPos.y >= height)
-    {
-        newPos.x = clamp(newPos.x, 0, width-1);
-        newPos.y = clamp(newPos.y, 0, height-1);
-    }
-
-    int2 pxlXY = int2(newPos);
-    TrailMap[pxlXY] = float4(1.0, 1.0, 1.0, 1.0);
-
-    slimeAgents[id.x].angle = newAngle;
-    slimeAgents[id.x].position = newPos;
-}
-
 // sample trails around agent where angleOffset is the offset from the original direction that the agent is traveling in 
 // returning the strength of attraction of the agent towards the offseted angle 
 float sampleTrail(SlimeAgent agent, float angleOffset) 
@@ -116,10 +84,76 @@ float sampleTrail(SlimeAgent agent, float angleOffset)
     }
 
     int agentID = agent.speciesID;
-    float4 attractions = 2 * speciesMask(agent) - 1;
+    float4 attractions = 2 * speciesMask(agent.speciesID) - 1;
 
     return dot(strength, attractions);
 } 
+
+void step(int agentIdx) {
+    SlimeAgent agent = slimeAgents[agentIdx];
+    SpeciesSettings agentSettings = species[agent.speciesID];
+    
+    float2 dir = float2(cos(agent.angle), sin(agent.angle));
+    float2 newPos = agent.position + agentSettings.velocity * dir * dt;
+
+    int rand = hash(hash(agent.position.y * width + agent.position.x + hash(agentIdx + time * 100000)));
+
+    if (newPos.x < 0 || newPos.x >= width || newPos.y < 0 || newPos.y >= height)
+    {
+        newPos.x = clamp(newPos.x, 0, width-1);
+        newPos.y = clamp(newPos.y, 0, height-1);
+        slimeAgents[agentIdx].angle = scaleToRange01(rand) * 2 * 3.14159;
+    }
+
+    int2 pxlXY = int2(newPos);
+
+    // deposit slime
+    float4 agentMask = speciesMask(agent.speciesID);
+    TrailMap[pxlXY] = min(1, TrailMap[pxlXY] + agentMask * agentSettings.trailWeight * dt);
+
+    slimeAgents[agentIdx].position = newPos;
+}
+
+[numthreads(16,1,1)]
+void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: update the state of slime agents based on the trail map
+    if (id.x >= numAgents) 
+    {
+        return;
+    }
+
+    SlimeAgent agent = slimeAgents[id.x];
+    SpeciesSettings agentSettings = species[agent.speciesID];
+
+    // using same hashing method as Sebastian here
+    int rand = hash(agent.position.y * width + agent.position.x + hash(id.x + time * 100000));
+
+    float leftSample = sampleTrail(agent, agentSettings.sensorAngle);
+    float midSample = sampleTrail(agent, 0);
+    float rightSample = sampleTrail(agent, -agentSettings.sensorAngle);
+
+    float turnWeight = scaleToRange01(rand);
+    float turnAngle = agentSettings.rotationAngle;
+
+    if ((midSample > leftSample) && (midSample > rightSample)) {
+        // forward
+        slimeAgents[id.x].angle += 0;
+    } else if ((midSample < leftSample) && (midSample > rightSample)) {
+        // random
+        slimeAgents[id.x].angle += 2 * (turnWeight - 0.5) * turnAngle * dt;
+    } else if (leftSample > rightSample) {
+        // left
+        slimeAgents[id.x].angle += turnWeight * turnAngle * dt;
+    } else if (rightSample > leftSample) {
+        // right
+        slimeAgents[id.x].angle -= turnWeight * turnAngle * dt;
+    } else {
+        slimeAgents[id.x].angle += 0;
+    }
+    
+    step(id.x);
+}
 
 #pragma kernel Blur
 
