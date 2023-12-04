@@ -16,3 +16,12 @@ MonoBehaviour:
   vpWidth: 256
   vpHeight: 256
   simsPerFrame: 10
+  decayRate: 0.01
+  diffuseRate: 1
+  species:
+  - sensorAngle: 0
+    rotationAngle: 0
+    sensorDist: 0
+    sensorRadius: 0
+    velocity: 1
+    color: {x: 1, y: 1, z: 1, w: 1}

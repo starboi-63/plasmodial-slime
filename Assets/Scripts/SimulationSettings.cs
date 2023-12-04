@@ -8,6 +8,8 @@ public class SimulationSettings : ScriptableObject
     public int vpWidth = 256;
     public int vpHeight = 256;
     public int simsPerFrame = 10;
+    public float decayRate = 1;
+    public float diffuseRate = 1;
 
 	[System.Serializable]
     public struct SpeciesSettings {

@@ -40,8 +40,8 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetTexture(blurKernel, "TrailMap",  trailMap);
         computeSim.SetTexture(blurKernel, "NextTrailMap", nextTrailMap);
     
-
-        computeSim
+        computeSim.SetTexture(paintKernel, "ViewportTex", viewportTex);
+        computeSim.SetTexture(paintKernel, "TrailMap", trailMap);
         
         // clearing trail and viewport textures (setting to 0)
         computeSim.SetTexture(clearKernel, "TrailMap",  trailMap);
@@ -68,6 +68,9 @@ public class SlimeSimulation : MonoBehaviour
 
         computeSim.SetInt("width", settings.vpWidth);
         computeSim.SetInt("height", settings.vpHeight);
+
+        computeSim.SetFloat("decayRate", settings.decayRate);
+        computeSim.SetFloat("diffuseRate", settings.diffuseRate);
     }
 
     void FixedUpdate()
@@ -80,17 +83,18 @@ public class SlimeSimulation : MonoBehaviour
 
     void LateUpdate()
     {
-        Graphics.Blit(nextTrailMap, trailMap);
+        computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 
     void Simulate()
     {
         computeSim.SetFloat("dt", Time.fixedDeltaTime);
+        computeSim.SetFloat("time", Time.fixedTime);
 
         // send species related buffers to shader here, for now just using magic values within compute
         computeSim.Dispatch(updateKernel, Mathf.CeilToInt(settings.numAgents / 16.0F), 1, 1);
         computeSim.Dispatch(blurKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-        Graphics.Blit(nextTrailMap, viewportTex);
+        Graphics.Blit(nextTrailMap, trailMap);
     }
 
     // Called when the attached Object is destroyed.

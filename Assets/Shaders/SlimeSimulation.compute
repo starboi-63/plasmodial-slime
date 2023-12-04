@@ -1,7 +1,4 @@
 #pragma kernel UpdateSlimeSimulation
-#pragma kernel Blur
-#pragma kernel PaintSlimeSimulation
-#pragma kernel ClearTextures
 
 // redefine necessary structs
 struct SlimeAgent {
@@ -27,7 +24,6 @@ struct SpeciesSettings {
 
 RWTexture2D<float4> TrailMap;
 RWTexture2D<float4> NextTrailMap;
-RWTexture2D<float4> ViewportTex;
 int width;
 int height;
 
@@ -36,7 +32,11 @@ uint numAgents;
 
 RWStructuredBuffer<SpeciesSettings> species;
 
+float decayRate;
+float diffuseRate;
+
 float dt;
+float time;
 
 float4 speciesMask(SlimeAgent agent) {
     int agentID = agent.speciesID;
@@ -75,19 +75,25 @@ void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
     }
 
     SlimeAgent agent = slimeAgents[id.x];
-    float2 dir = float2(cos(agent.angle), sin(agent.angle));
-    float2 nextPos = agent.position + dt * dir;
+    SpeciesSettings agentSettings = species[agent.speciesID];
 
-    if (nextPos.x < 0 || nextPos.x >= width || nextPos.y < 0 || nextPos.y >= height)
+    int rand = hash(agent.position.y * width + agent.position.x + hash(id.x + time * 100000));
+    
+    float newAngle = agent.angle + 0.1 * (scaleToRange01(rand) - 0.5);
+    float2 dir = float2(cos(newAngle), sin(newAngle));
+    float2 newPos = agent.position + dt * agentSettings.velocity * dir;
+
+    if (newPos.x < 0 || newPos.x >= width || newPos.y < 0 || newPos.y >= height)
     {
-        nextPos.x = clamp(nextPos.x, 0, width-1);
-        nextPos.y = clamp(nextPos.y, 0, height-1);
+        newPos.x = clamp(newPos.x, 0, width-1);
+        newPos.y = clamp(newPos.y, 0, height-1);
     }
 
-    int2 pxlXY = int2(nextPos);
+    int2 pxlXY = int2(newPos);
     TrailMap[pxlXY] = float4(1.0, 1.0, 1.0, 1.0);
 
-    slimeAgents[id.x].position = nextPos;
+    slimeAgents[id.x].angle = newAngle;
+    slimeAgents[id.x].position = newPos;
 }
 
 // sample trails around agent where angleOffset is the offset from the original direction that the agent is traveling in 
@@ -115,6 +121,8 @@ float sampleTrail(SlimeAgent agent, float angleOffset)
     return dot(strength, attractions);
 } 
 
+#pragma kernel Blur
+
 [numthreads(8,8,1)]
 void Blur (uint3 id : SV_DispatchThreadID)
 {
@@ -130,17 +138,21 @@ void Blur (uint3 id : SV_DispatchThreadID)
     }
 
     outPxl = outPxl / 9;
-    float diffuseRate = 0.5 * dt;
-    float decayRate = 0.04;
-    outPxl = prevPxl * (1 - diffuseRate) + outPxl * diffuseRate;
-    NextTrailMap[id.xy] = max(0, outPxl - float4(decayRate, decayRate, decayRate, 0));
+    outPxl = prevPxl * (1 - diffuseRate * dt) + outPxl * diffuseRate * dt;
+    NextTrailMap[id.xy] = max(0, outPxl - decayRate * dt);
 }
+
+#pragma kernel PaintSlimeSimulation
+
+RWTexture2D<float4> ViewportTex;
 
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    Out
+    ViewportTex[id.xy] = TrailMap[id.xy].x * species[0].color;
 }
+
+#pragma kernel ClearTextures
 
 [numthreads(8,8,1)]
 void ClearTextures (uint3 id : SV_DispatchThreadID)
