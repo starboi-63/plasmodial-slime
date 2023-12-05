@@ -21,6 +21,7 @@ struct SpeciesSettings {
 
 RWTexture2D<float4> TrailMap;
 RWTexture2D<float4> NextTrailMap;
+
 int width;
 int height;
 
@@ -177,6 +178,7 @@ void Blur (uint3 id : SV_DispatchThreadID)
 #pragma kernel PaintSlimeSimulation
 
 RWTexture2D<float4> ViewportTex;
+RWTexture2D<float4> FoodMap;
 float4 foodColor;
 
 [numthreads(8,8,1)]
@@ -185,9 +187,20 @@ void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
     ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color) + (FoodMap[id.xy] * foodColor);
 }
 
-#pragma kernel ClearTextures
+#pragma kernel PaintFood
 
-RWTexture2D<float4> FoodMap;
+int2 clickPos;
+int foodBrushRadius;
+
+[numthreads(8,8,1)]
+void PaintFood (uint3 id : SV_DispatchThreadID)
+{
+    if (length(id.xy - clickPos) <= foodBrushRadius) {
+        FoodMap[id.xy] = foodColor;
+    }
+}
+
+#pragma kernel ClearTextures
 
 [numthreads(8,8,1)]
 void ClearTextures (uint3 id : SV_DispatchThreadID)

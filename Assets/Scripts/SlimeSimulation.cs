@@ -20,7 +20,8 @@ public class SlimeSimulation : MonoBehaviour
     const int updateKernel = 0;
     const int blurKernel = 1;
     const int paintKernel = 2;
-    const int clearKernel = 3;
+    const int foodKernel = 3;
+    const int clearKernel = 4;
 
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
@@ -44,16 +45,22 @@ public class SlimeSimulation : MonoBehaviour
 
         viewport.texture = viewportTex;
 
+        // update function in compute shader
         computeSim.SetTexture(updateKernel, "TrailMap", trailMap);
 
+        // blur function in compute shader
         computeSim.SetTexture(blurKernel, "TrailMap", trailMap);
         computeSim.SetTexture(blurKernel, "NextTrailMap", nextTrailMap);
 
+        // paint canvas function in compute shader
         computeSim.SetTexture(paintKernel, "ViewportTex", viewportTex);
         computeSim.SetTexture(paintKernel, "TrailMap", trailMap);
         computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
 
-        // clearing trail, food, and viewport textures (setting to <0,0,0,0>)
+        // paint food function in compute shader
+        computeSim.SetTexture(foodKernel, "FoodMap", foodMap);
+
+        // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         computeSim.SetTexture(clearKernel, "TrailMap", trailMap);
         computeSim.SetTexture(clearKernel, "FoodMap", foodMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
@@ -88,6 +95,8 @@ public class SlimeSimulation : MonoBehaviour
 
         computeSim.SetFloat("decayRate", settings.decayRate);
         computeSim.SetFloat("diffuseRate", settings.diffuseRate);
+
+        computeSim.SetInt("foodBrushRadius", settings.foodBrushRadius);
         computeSim.SetVector("foodColor", settings.foodColor);
 
         Simulate();
@@ -144,8 +153,6 @@ public class SlimeSimulation : MonoBehaviour
 
     void PlaceFood()
     {
-        Debug.Log("PlaceFood called");
-
         // store position of click in screen space
         Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
 
@@ -153,8 +160,17 @@ public class SlimeSimulation : MonoBehaviour
         Vector2 canvasPos = new();
         bool withinCanvas = RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out canvasPos);
 
-        Debug.Log(withinCanvas);
-        Debug.Log(canvasPos);
+        // print out click position in canvas space
+        Debug.Log("Click Detected!");
+        Debug.Log("Within Canvas: " + withinCanvas);
+        Debug.Log("Canvas Position: " + canvasPos);
+
+        // if the click was within the canvas, pass the click position to the compute shader and paint food
+        if (withinCanvas)
+        {
+            computeSim.SetVector("clickPos", canvasPos);
+            computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        }
     }
 
     void Paint()
