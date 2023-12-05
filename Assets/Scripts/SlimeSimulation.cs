@@ -46,6 +46,7 @@ public class SlimeSimulation : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log("started!");
         // Initialize agent, trail, and color buffers
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
@@ -61,6 +62,7 @@ public class SlimeSimulation : MonoBehaviour
 
         computeSim.SetTexture(paintKernel, "ViewportTex", viewportTex);
         computeSim.SetTexture(paintKernel, "TrailMap", trailMap);
+        computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
 
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>)
         computeSim.SetTexture(clearKernel, "TrailMap", trailMap);
@@ -149,6 +151,6 @@ public class SlimeSimulation : MonoBehaviour
     // Called when the attached Object is destroyed.
     void OnDestroy()
     {
-        // Release agent, trail, and color buffers
+        // Release buffers
     }
 }

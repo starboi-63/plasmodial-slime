@@ -183,7 +183,7 @@ float4 foodColor;
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color) + (FoodMap[id.xy] * foodColor);
+    ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color); //+ (FoodMap[id.xy] * foodColor);
 }
 
 #pragma kernel ClearTextures
