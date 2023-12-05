@@ -96,6 +96,7 @@ public class SlimeSimulation : MonoBehaviour
 
         computeSim.SetFloat("decayRate", settings.decayRate);
         computeSim.SetFloat("diffuseRate", settings.diffuseRate);
+        computeSim.SetVector("foodColor", settings.foodColor);
 
         Simulate();
         Paint();
