@@ -146,7 +146,10 @@ public class SlimeSimulation : MonoBehaviour
     {
         Debug.Log("PlaceFood called");
 
+        // store position of click in screen space
         Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
+
+        // convert screen space click position to the coordinate space of the viewport
         Vector2 canvasPos = new();
         bool withinCanvas = RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out canvasPos);
 
