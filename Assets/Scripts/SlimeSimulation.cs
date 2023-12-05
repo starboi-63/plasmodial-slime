@@ -132,7 +132,7 @@ public class SlimeSimulation : MonoBehaviour
 
     void Update()
     {
-        if (placingFood && Input.GetButtonDown("Fire1"))
+        if (placingFood && Input.GetButton("Fire1"))
         {
             PlaceFood();
         }

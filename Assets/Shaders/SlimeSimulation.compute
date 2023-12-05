@@ -184,8 +184,8 @@ float4 foodColor;
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
+    // ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color) + (FoodMap[id.xy] * foodColor);
     ViewportTex[id.xy] = FoodMap[id.xy];
-    //ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color) + (FoodMap[id.xy] * foodColor);
 }
 
 #pragma kernel PaintFood
@@ -197,7 +197,7 @@ int foodBrushRadius;
 void PaintFood (uint3 id : SV_DispatchThreadID)
 {
     if (length(id.xy - clickPos) <= foodBrushRadius) {
-        FoodMap[id.xy] = foodColor;
+        FoodMap[id.xy] = 1;
     }
 }
 
