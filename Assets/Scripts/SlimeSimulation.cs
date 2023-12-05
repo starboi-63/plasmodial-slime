@@ -80,6 +80,8 @@ public class SlimeSimulation : MonoBehaviour
 
         computeSim.SetFloat("decayRate", settings.decayRate);
         computeSim.SetFloat("diffuseRate", settings.diffuseRate);
+        Simulate();
+        Paint();
     }
 
     public void TogglePlaying()
@@ -105,8 +107,13 @@ public class SlimeSimulation : MonoBehaviour
                 Simulate();
             }
 
-            computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+            Paint();
         }
+    }
+
+    void Paint() 
+    {
+        computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 
     void Simulate()
