@@ -157,8 +157,7 @@ public class SlimeSimulation : MonoBehaviour
         Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
 
         // convert screen space click position to the coordinate space of the viewport
-        Vector2 canvasPos = new();
-        bool withinCanvas = RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out canvasPos);
+        bool withinCanvas = RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out Vector2 canvasPos);
 
         // print out click position in canvas space
         Debug.Log("Click Detected!");
