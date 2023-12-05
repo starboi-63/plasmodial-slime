@@ -177,16 +177,17 @@ void Blur (uint3 id : SV_DispatchThreadID)
 #pragma kernel PaintSlimeSimulation
 
 RWTexture2D<float4> ViewportTex;
-RWTexture2D<float4> FoodMap;
 float4 foodColor;
 
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color); //+ (FoodMap[id.xy] * foodColor);
+    ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color) + (FoodMap[id.xy] * foodColor);
 }
 
 #pragma kernel ClearTextures
+
+RWTexture2D<float4> FoodMap;
 
 [numthreads(8,8,1)]
 void ClearTextures (uint3 id : SV_DispatchThreadID)

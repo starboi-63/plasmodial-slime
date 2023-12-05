@@ -11,6 +11,7 @@ public class SlimeSimulation : MonoBehaviour
     // UI Vars
     public RawImage viewport;
     public TMP_Text togglePlayText;
+    public TMP_Text toggleFoodText;
 
     public SimulationSettings settings;
 
@@ -27,6 +28,7 @@ public class SlimeSimulation : MonoBehaviour
     public RenderTexture foodMap;
 
     public bool playing = false;
+    public bool placingFood = false;
 
     ComputeBuffer agentBuffer;
     ComputeBuffer speciesBuffer;
@@ -66,6 +68,7 @@ public class SlimeSimulation : MonoBehaviour
 
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>)
         computeSim.SetTexture(clearKernel, "TrailMap", trailMap);
+        computeSim.SetTexture(clearKernel, "FoodMap", foodMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
 
         SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
@@ -117,9 +120,27 @@ public class SlimeSimulation : MonoBehaviour
             togglePlayText.SetText("Play");
         }
     }
+    public void ToggleFood()
+    {
+        placingFood = !placingFood;
+
+        if (placingFood)
+        {
+            toggleFoodText.SetText("Stop");
+        }
+        else
+        {
+            toggleFoodText.SetText("Place Food");
+        }
+    }
 
     void FixedUpdate()
     {
+        if (placingFood)
+        {
+            PlaceFood();
+        }
+
         if (playing)
         {
             for (int i = 0; i < settings.simsPerFrame; i++)
