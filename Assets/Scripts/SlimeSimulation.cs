@@ -33,18 +33,6 @@ public class SlimeSimulation : MonoBehaviour
     ComputeBuffer agentBuffer;
     ComputeBuffer speciesBuffer;
 
-    void PlaceFood()
-    {
-        if (Input.GetButtonDown("Fire1"))
-        {
-            Vector3 mousePos = Input.mousePosition;
-            {
-                Debug.Log(mousePos.x);
-                Debug.Log(mousePos.y);
-            }
-        }
-    }
-
     // Start is called before the first frame update
     void Start()
     {
@@ -134,13 +122,16 @@ public class SlimeSimulation : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        if (placingFood)
+        if (placingFood && Input.GetButtonDown("Fire1"))
         {
             PlaceFood();
         }
+    }
 
+    void FixedUpdate()
+    {
         if (playing)
         {
             for (int i = 0; i < settings.simsPerFrame; i++)
@@ -150,6 +141,16 @@ public class SlimeSimulation : MonoBehaviour
 
             Paint();
         }
+    }
+
+    void PlaceFood()
+    {
+        Debug.Log("PlaceFood called");
+
+        Vector3 mousePos = Input.mousePosition;
+
+        Debug.Log(mousePos.x);
+        Debug.Log(mousePos.y);
     }
 
     void Paint()
