@@ -157,9 +157,10 @@ public class SlimeSimulation : MonoBehaviour
         Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
 
         // convert screen space click position to the coordinate space of the viewport
-        bool withinCanvas = RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out Vector2 canvasPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out Vector2 canvasPos);
+        bool withinCanvas = viewport.rectTransform.rect.Contains(canvasPos);
 
-        // print out click position in canvas space
+        // debug logging
         Debug.Log("Click Detected!");
         Debug.Log("Within Canvas: " + withinCanvas);
         Debug.Log("Canvas Position: " + canvasPos);
@@ -167,9 +168,12 @@ public class SlimeSimulation : MonoBehaviour
         // if the click was within the canvas, pass the click position to the compute shader and paint food
         if (withinCanvas)
         {
-            computeSim.SetVector("clickPos", canvasPos);
+            Debug.Log("Painting Food!");
+            computeSim.SetVector("clickPos", canvasPos + new Vector2(settings.vpWidth / 2, settings.vpHeight / 2));
             computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
         }
+
+        Paint();
     }
 
     void Paint()
