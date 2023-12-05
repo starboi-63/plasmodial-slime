@@ -4,10 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using ComputeUtilities;
 using Unity.VisualScripting;
+using TMPro;
 
 public class SlimeSimulation : MonoBehaviour
 {
+    // UI Vars
     public RawImage viewport;
+    public TMP_Text togglePlayText;
 
     public SimulationSettings settings;
 
@@ -21,6 +24,8 @@ public class SlimeSimulation : MonoBehaviour
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
     public RenderTexture nextTrailMap;
+
+    public bool playing = false;
 
     ComputeBuffer agentBuffer;
     ComputeBuffer speciesBuffer;
@@ -50,7 +55,7 @@ public class SlimeSimulation : MonoBehaviour
         SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
         for (int i = 0; i < settings.numAgents; i++) {
             float randomTheta = (float)(Random.value) * 2 * Mathf.PI;
-            float randomR = (float)(Random.value) * 200;
+            float randomR = (float)(Random.value) * 250;
             float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
             float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
             float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
@@ -77,17 +82,31 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetFloat("diffuseRate", settings.diffuseRate);
     }
 
-    void FixedUpdate()
+    public void TogglePlaying()
     {
-        for (int i = 0; i < settings.simsPerFrame; i++) 
+        playing = !playing;
+
+        if (playing)
         {
-            Simulate();
+            togglePlayText.SetText("Pause");
+        }
+        else
+        {
+            togglePlayText.SetText("Play");
         }
     }
 
-    void LateUpdate()
+    void FixedUpdate()
     {
-        computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        if (playing)
+        {
+            for (int i = 0; i < settings.simsPerFrame; i++) 
+            {
+                Simulate();
+            }
+
+            computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        }
     }
 
     void Simulate()

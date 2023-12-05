@@ -17,7 +17,7 @@ namespace ComputeUtilities
             tex.Create();
 
             tex.wrapMode = TextureWrapMode.Clamp;
-            tex.filterMode = FilterMode.Point; // probably change this to bilinear at some point
+            tex.filterMode = FilterMode.Bilinear; // probably change this to bilinear at some point
         }
 
         public static void CreateBuffer<T>(ref ComputeBuffer buff, T[] data) {

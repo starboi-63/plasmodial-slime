@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7aa054fc266ce456bba05390d06293fa, type: 3}
-  m_Name: Default
+  m_Name: CircleLikeSebastianAlmost
   m_EditorClassIdentifier: 
   numAgents: 100000
   vpWidth: 512
   vpHeight: 512
-  simsPerFrame: 25
-  decayRate: 0.01
+  simsPerFrame: 10
+  decayRate: 0.08
   diffuseRate: 1
   species:
-  - sensorAngle: 0.79
-    rotationAngle: 0.8
+  - sensorAngle: 0.82
+    rotationAngle: 0.78
     sensorDist: 9
     sensorRadius: 1
     velocity: 1
-    trailWeight: 5
+    trailWeight: 1
     color: {x: 1, y: 1, z: 1, w: 1}
