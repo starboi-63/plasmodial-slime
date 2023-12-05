@@ -194,5 +194,7 @@ public class SlimeSimulation : MonoBehaviour
     void OnDestroy()
     {
         // Release buffers
+        agentBuffer.Release();
+        speciesBuffer.Release();
     }
 }
