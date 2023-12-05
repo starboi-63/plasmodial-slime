@@ -194,5 +194,3 @@ void ClearTextures (uint3 id : SV_DispatchThreadID)
     TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
     FoodMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
 }
-
-#pragma kernel 
