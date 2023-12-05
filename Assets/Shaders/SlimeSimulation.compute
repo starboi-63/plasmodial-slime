@@ -3,11 +3,8 @@
 // redefine necessary structs
 struct SlimeAgent {
     float2 position;
-    float angle;
-    // add more attributes as necessary
-
-    // identifying index into species buffer 
-    int speciesID;
+    float angle; // direction agent faces in radians
+    int speciesID; // identifying index into species buffer 
 };
 
 struct SpeciesSettings {
@@ -180,11 +177,13 @@ void Blur (uint3 id : SV_DispatchThreadID)
 #pragma kernel PaintSlimeSimulation
 
 RWTexture2D<float4> ViewportTex;
+RWTexture2D<float4> FoodMap;
+float4 foodColor;
 
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    ViewportTex[id.xy] = TrailMap[id.xy].x * species[0].color;
+    ViewportTex[id.xy] = (TrailMap[id.xy].x * species[0].color) + (FoodMap[id.xy] * foodColor);
 }
 
 #pragma kernel ClearTextures
@@ -193,4 +192,7 @@ void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 void ClearTextures (uint3 id : SV_DispatchThreadID)
 {
     TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
+    FoodMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
 }
+
+#pragma kernel 
