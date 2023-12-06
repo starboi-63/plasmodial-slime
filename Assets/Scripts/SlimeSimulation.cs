@@ -11,6 +11,7 @@ public class SlimeSimulation : MonoBehaviour
     // UI Vars
     public RawImage viewport;
     public TMP_Text togglePlayText;
+    public TMP_Text toggleFoodText;
 
     public SimulationSettings settings;
 
@@ -18,14 +19,17 @@ public class SlimeSimulation : MonoBehaviour
 
     const int updateKernel = 0;
     const int blurKernel = 1;
-	const int paintKernel = 2;
-    const int clearKernel = 3;
+    const int paintKernel = 2;
+    const int foodKernel = 3;
+    const int clearKernel = 4;
 
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
     public RenderTexture nextTrailMap;
+    public RenderTexture foodMap;
 
     public bool playing = false;
+    public bool placingFood = false;
 
     ComputeBuffer agentBuffer;
     ComputeBuffer speciesBuffer;
@@ -37,30 +41,41 @@ public class SlimeSimulation : MonoBehaviour
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref nextTrailMap, settings.vpWidth, settings.vpHeight);
+        ComputeUtil.CreateTex(ref foodMap, settings.vpWidth, settings.vpHeight);
 
         viewport.texture = viewportTex;
 
+        // update function in compute shader
         computeSim.SetTexture(updateKernel, "TrailMap", trailMap);
 
-        computeSim.SetTexture(blurKernel, "TrailMap",  trailMap);
+        // blur function in compute shader
+        computeSim.SetTexture(blurKernel, "TrailMap", trailMap);
         computeSim.SetTexture(blurKernel, "NextTrailMap", nextTrailMap);
-    
+
+        // paint canvas function in compute shader
         computeSim.SetTexture(paintKernel, "ViewportTex", viewportTex);
         computeSim.SetTexture(paintKernel, "TrailMap", trailMap);
-        
-        // clearing trail and viewport textures (setting to 0)
-        computeSim.SetTexture(clearKernel, "TrailMap",  trailMap);
+        computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
+
+        // paint food function in compute shader
+        computeSim.SetTexture(foodKernel, "FoodMap", foodMap);
+
+        // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
+        computeSim.SetTexture(clearKernel, "TrailMap", trailMap);
+        computeSim.SetTexture(clearKernel, "FoodMap", foodMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
 
         // intialize agent positions within circle 
         SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
-        for (int i = 0; i < settings.numAgents; i++) {
+        for (int i = 0; i < settings.numAgents; i++)
+        {
             float randomTheta = (float)(Random.value) * 2 * Mathf.PI;
             float randomR = (float)(Random.value) * 250;
             float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
             float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
             float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
-            agents[i] = new SlimeAgent {
+            agents[i] = new SlimeAgent
+            {
                 position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
                 angle = randAngle,
                 speciesID = 0
@@ -74,13 +89,17 @@ public class SlimeSimulation : MonoBehaviour
 
         ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
         computeSim.SetBuffer(updateKernel, "species", speciesBuffer);
-        computeSim.SetBuffer(paintKernel, "species", speciesBuffer);       
+        computeSim.SetBuffer(paintKernel, "species", speciesBuffer);
 
         computeSim.SetInt("width", settings.vpWidth);
         computeSim.SetInt("height", settings.vpHeight);
 
         computeSim.SetFloat("decayRate", settings.decayRate);
         computeSim.SetFloat("diffuseRate", settings.diffuseRate);
+
+        computeSim.SetInt("foodBrushRadius", settings.foodBrushRadius);
+        computeSim.SetVector("foodColor", settings.foodColor);
+
         Simulate();
         Paint();
     }
@@ -98,12 +117,37 @@ public class SlimeSimulation : MonoBehaviour
             togglePlayText.SetText("Play");
         }
     }
+    public void ToggleFood()
+    {
+        // force Unity to recompile
+        placingFood = !placingFood;
+
+        if (placingFood)
+        {
+            toggleFoodText.SetText("Stop");
+        }
+        else
+        {
+            toggleFoodText.SetText("Place Food");
+        }
+    }
+
+    void Update()
+    {
+        // if the user is holding down the left mouse button and the food placement toggle is on, place food
+
+    }
 
     void FixedUpdate()
     {
+        if (placingFood && Input.GetButton("Fire1"))
+        {
+            PlaceFood();
+        }
+
         if (playing)
         {
-            for (int i = 0; i < settings.simsPerFrame; i++) 
+            for (int i = 0; i < settings.simsPerFrame; i++)
             {
                 Simulate();
             }
@@ -112,8 +156,34 @@ public class SlimeSimulation : MonoBehaviour
         }
     }
 
-    void Paint() 
+    void PlaceFood()
     {
+        // store position of click in screen space
+        Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
+
+        // convert screen space click position to the coordinate space of the viewport
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out Vector2 canvasPos);
+        bool withinCanvas = viewport.rectTransform.rect.Contains(canvasPos);
+
+        // debug logging
+        Debug.Log("Click Detected!");
+        Debug.Log("Within Canvas: " + withinCanvas);
+        Debug.Log("Canvas Position: " + canvasPos);
+
+        // if the click was within the canvas, pass the click position to the compute shader and paint food
+        if (withinCanvas)
+        {
+            Debug.Log("Painting Food!");
+            computeSim.SetVector("clickPos", canvasPos + new Vector2(settings.vpWidth / 2, settings.vpHeight / 2));
+            computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        }
+
+        Paint();
+    }
+
+    void Paint()
+    {
+        computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
         computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 
@@ -132,6 +202,8 @@ public class SlimeSimulation : MonoBehaviour
     // Called when the attached Object is destroyed.
     void OnDestroy()
     {
-        // Release agent, trail, and color buffers
+        // Release buffers
+        agentBuffer.Release();
+        speciesBuffer.Release();
     }
 }
