@@ -10,8 +10,15 @@ public class SlimeSimulation : MonoBehaviour
 {
     // UI Vars
     public RawImage viewport;
+
+    public bool playing = false;
+    public bool placingFood = false;
+    public bool erasing = false;
+    public bool clearAll = false; 
+
     public TMP_Text togglePlayText;
     public TMP_Text toggleFoodText;
+    public TMP_Text toggleEraseText;
 
     public SimulationSettings settings;
 
@@ -19,17 +26,15 @@ public class SlimeSimulation : MonoBehaviour
 
     const int updateKernel = 0;
     const int blurKernel = 1;
-    const int paintKernel = 2;
+	const int paintKernel = 2;
     const int foodKernel = 3;
-    const int clearKernel = 4;
+    const int eraseKernel = 4;
+    const int clearKernel = 5;
 
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
     public RenderTexture nextTrailMap;
-    public RenderTexture foodMap;
-
-    public bool playing = false;
-    public bool placingFood = false;
+    public RenderTexture foodMap; 
 
     ComputeBuffer agentBuffer;
     ComputeBuffer speciesBuffer;
@@ -51,7 +56,7 @@ public class SlimeSimulation : MonoBehaviour
         // blur function in compute shader
         computeSim.SetTexture(blurKernel, "TrailMap", trailMap);
         computeSim.SetTexture(blurKernel, "NextTrailMap", nextTrailMap);
-
+    
         // paint canvas function in compute shader
         computeSim.SetTexture(paintKernel, "ViewportTex", viewportTex);
         computeSim.SetTexture(paintKernel, "TrailMap", trailMap);
@@ -59,6 +64,10 @@ public class SlimeSimulation : MonoBehaviour
 
         // paint food function in compute shader
         computeSim.SetTexture(foodKernel, "FoodMap", foodMap);
+
+        // erase function in compute shader
+        computeSim.SetTexture(eraseKernel, "TrailMap", trailMap);
+        computeSim.SetTexture(eraseKernel, "FoodMap", foodMap);
 
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         computeSim.SetTexture(clearKernel, "TrailMap", trailMap);
@@ -89,7 +98,7 @@ public class SlimeSimulation : MonoBehaviour
 
         ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
         computeSim.SetBuffer(updateKernel, "species", speciesBuffer);
-        computeSim.SetBuffer(paintKernel, "species", speciesBuffer);
+        computeSim.SetBuffer(paintKernel, "species", speciesBuffer);       
 
         computeSim.SetInt("width", settings.vpWidth);
         computeSim.SetInt("height", settings.vpHeight);
@@ -99,6 +108,8 @@ public class SlimeSimulation : MonoBehaviour
 
         computeSim.SetInt("foodBrushRadius", settings.foodBrushRadius);
         computeSim.SetVector("foodColor", settings.foodColor);
+
+        computeSim.SetInt("eraseBrushRadius", settings.eraseBrushRadius);
 
         Simulate();
         Paint();
@@ -117,6 +128,7 @@ public class SlimeSimulation : MonoBehaviour
             togglePlayText.SetText("Play");
         }
     }
+    
     public void ToggleFood()
     {
         // force Unity to recompile
@@ -129,6 +141,20 @@ public class SlimeSimulation : MonoBehaviour
         else
         {
             toggleFoodText.SetText("Place Food");
+        }
+    }
+
+    public void ToggleErase() 
+    {
+        erasing = !erasing; 
+
+        if (erasing) 
+        {
+            toggleEraseText.SetText("Stop");
+        } 
+        else 
+        {
+            toggleEraseText.SetText("Erase");
         }
     }
 
@@ -147,12 +173,17 @@ public class SlimeSimulation : MonoBehaviour
 
         if (playing)
         {
-            for (int i = 0; i < settings.simsPerFrame; i++)
+            for (int i = 0; i < settings.simsPerFrame; i++) 
             {
                 Simulate();
             }
 
             Paint();
+        }
+
+        if (erasing && Input.GetButton("Fire1"))
+        {
+            Erase();
         }
     }
 
@@ -181,7 +212,31 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
-    void Paint()
+    void Erase()
+    {
+        // store position of click in screen space
+        Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
+
+        // convert screen space click position to the coordinate space of the viewport
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out Vector2 canvasPos);
+        bool inCanvas = viewport.rectTransform.rect.Contains(canvasPos);
+
+        // if the click was within the canvas, pass the click position to the compute shader and erase
+        if (inCanvas)
+        {
+            computeSim.SetVector("clickPos", canvasPos + new Vector2(settings.vpWidth / 2, settings.vpHeight / 2));
+            computeSim.Dispatch(eraseKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        }
+
+        computeSim.Dispatch(eraseKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+    }
+
+    void ClearAll()
+    {
+        computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+    }
+
+    void Paint() 
     {
         computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
         computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);

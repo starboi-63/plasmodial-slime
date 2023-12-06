@@ -12,7 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aa054fc266ce456bba05390d06293fa, type: 3}
   m_Name: SingleAgent
   m_EditorClassIdentifier: 
-  numAgents: 1
+  numAgents: 50
   vpWidth: 256
   vpHeight: 256
-  simsPerFrame: 10
+  simsPerFrame: 5
+  decayRate: 1
+  diffuseRate: 1
+  foodBrushRadius: 5
+  foodColor: {x: 0.882, y: 0.682, z: 0.376, w: 1}
+  species:
+  - sensorAngle: 0.349
+    rotationAngle: 0.785
+    sensorDist: 9
+    sensorRadius: 1
+    velocity: 10
+    trailWeight: 0
+    color: {x: 1, y: 1, z: 1, w: 1}
