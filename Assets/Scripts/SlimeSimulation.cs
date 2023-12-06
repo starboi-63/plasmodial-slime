@@ -118,6 +118,7 @@ public class SlimeSimulation : MonoBehaviour
     }
     public void ToggleFood()
     {
+        // force Unity to recompile
         placingFood = !placingFood;
 
         if (placingFood)
@@ -132,14 +133,17 @@ public class SlimeSimulation : MonoBehaviour
 
     void Update()
     {
-        if (placingFood && Input.GetButton("Fire1"))
-        {
-            PlaceFood();
-        }
+        // if the user is holding down the left mouse button and the food placement toggle is on, place food
+
     }
 
     void FixedUpdate()
     {
+        if (placingFood && Input.GetButton("Fire1"))
+        {
+            PlaceFood();
+        }
+
         if (playing)
         {
             for (int i = 0; i < settings.simsPerFrame; i++)
@@ -178,6 +182,7 @@ public class SlimeSimulation : MonoBehaviour
 
     void Paint()
     {
+        computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
         computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 
