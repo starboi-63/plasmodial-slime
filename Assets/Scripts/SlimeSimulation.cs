@@ -52,6 +52,7 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetTexture(clearKernel, "TrailMap",  trailMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
 
+        // intialize agent positions within circle 
         SlimeAgent[] agents = new SlimeAgent[settings.numAgents];
         for (int i = 0; i < settings.numAgents; i++) {
             float randomTheta = (float)(Random.value) * 2 * Mathf.PI;

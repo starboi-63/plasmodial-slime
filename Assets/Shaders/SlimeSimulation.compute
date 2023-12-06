@@ -48,6 +48,7 @@ float clamp(float num, float lower, float upper)
 }
 
 // Hash function www.cs.ubc.ca/~rbridson/docs/schechter-sca08-turbulence.pdf
+// consider changing hash function ***
 uint hash(uint state)
 {
     state ^= 2747636419u;
