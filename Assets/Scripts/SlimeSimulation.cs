@@ -228,7 +228,7 @@ public class SlimeSimulation : MonoBehaviour
             computeSim.Dispatch(eraseKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
         }
 
-        computeSim.Dispatch(eraseKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        Paint();
     }
 
     void ClearAll()

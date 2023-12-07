@@ -951,9 +951,10 @@ MonoBehaviour:
   playing: 0
   placingFood: 0
   erasing: 0
+  clearAll: 0
   togglePlayText: {fileID: 1235937129}
   toggleFoodText: {fileID: 1833047423}
-  toggleEraseText: {fileID: 0}
+  toggleEraseText: {fileID: 1073472406}
   settings: {fileID: 11400000, guid: 45933556182474609abcede2c7a8e595, type: 2}
   computeSim: {fileID: 7200000, guid: d821ab15dd3564ae98e2d824fc19cc41, type: 3}
   viewportTex: {fileID: 0}
