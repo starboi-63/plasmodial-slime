@@ -203,6 +203,21 @@ void PaintFood (uint3 id : SV_DispatchThreadID)
     }
 }
 
+#pragma kernel Erase
+
+int eraseBrushRadius;
+
+[numthreads(8,8,1)]
+void Erase (uint3 id : SV_DispatchThreadID)
+{
+    float distance = length((int2)id.xy - clickPos);
+
+    if (distance <= eraseBrushRadius) {
+        TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
+        FoodMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
+    }
+}
+
 #pragma kernel ClearTextures
 
 [numthreads(8,8,1)]

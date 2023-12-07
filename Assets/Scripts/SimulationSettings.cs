@@ -13,6 +13,7 @@ public class SimulationSettings : ScriptableObject
     public float diffuseRate = 1;
     public int foodBrushRadius = 5;
     public Vector4 foodColor = new Vector4(0.882f, 0.682f, 0.376f, 1.0f);
+    public int eraseBrushRadius = 5;
 
     [System.Serializable]
     public struct SpeciesSettings

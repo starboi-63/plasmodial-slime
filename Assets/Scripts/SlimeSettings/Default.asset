@@ -22,9 +22,9 @@ MonoBehaviour:
   foodColor: {x: 0.882, y: 0.682, z: 0.376, w: 1}
   species:
   - sensorAngle: 0.79
-    rotationAngle: 0.8
+    rotationAngle: 0.98
     sensorDist: 9
     sensorRadius: 1
     velocity: 1
-    trailWeight: 5
+    trailWeight: 2.5
     color: {x: 1, y: 1, z: 1, w: 1}
