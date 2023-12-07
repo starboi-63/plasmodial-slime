@@ -21,6 +21,11 @@ namespace ComputeUtilities
         }
 
         public static void CreateBuffer<T>(ref ComputeBuffer buff, T[] data) {
+            if (buff != null)
+            {
+                buff.Release();
+            }
+            
             int count = data.Length;
             int stride = System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
             buff = new ComputeBuffer(count, stride);
