@@ -173,12 +173,6 @@ public class SlimeSimulation : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        // if the user is holding down the left mouse button and the food placement toggle is on, place food
-
-    }
-
     void FixedUpdate()
     {
         if (placingFood && Input.GetButton("Fire1"))
