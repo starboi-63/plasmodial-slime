@@ -7,6 +7,7 @@ using Unity.VisualScripting;
 using TMPro;
 using UnityEngine.UIElements;
 using System.Security.Cryptography;
+using System;
 
 public class SlimeSimulation : MonoBehaviour
 {
@@ -23,6 +24,20 @@ public class SlimeSimulation : MonoBehaviour
     public TMP_Text toggleEraseText;
 
     public SimulationSettings settings;
+
+    // species handlers
+    public TMP_Dropdown speciesDropdown;
+    public TMP_InputField sensorAngleField;
+    public TMP_InputField rotationAngleField;
+    public TMP_InputField sensorDistanceField;
+    public TMP_InputField trailWeightField;
+    public TMP_InputField velocityField;
+    public TMP_InputField rField;
+    public TMP_InputField gField;
+    public TMP_InputField bField;
+    public TMP_InputField aField;
+    public int activeSpecie = 0;
+    private bool changingSpecie = false;
 
     public ComputeShader computeSim;
 
@@ -46,6 +61,7 @@ public class SlimeSimulation : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        SetFields();
         // Initialize agent, trail, and color buffers
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
@@ -105,15 +121,15 @@ public class SlimeSimulation : MonoBehaviour
         agents = new List<SlimeAgent>(settings.numAgents);
         for (int i = 0; i < settings.numAgents; i++)
         {
-            float randomTheta = (float)(Random.value) * 2 * Mathf.PI;
-            float randomR = (float)(Random.value) * 250;
+            float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
+            float randomR = (float)UnityEngine.Random.value * 250;
             float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
             float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
             float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
             agents.Add( new SlimeAgent {
                 position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
                 angle = randAngle,
-                speciesID = 0
+                speciesID = (int)Math.Floor(2*UnityEngine.Random.value)
             });
         }
 
@@ -167,10 +183,94 @@ public class SlimeSimulation : MonoBehaviour
         {
             toggleEraseText.SetText("Stop");
         } 
-        else 
+        else
         {
             toggleEraseText.SetText("Erase");
         }
+    }
+
+    public void ToggleSpecie()
+    {
+        activeSpecie = speciesDropdown.value;
+        changingSpecie = true;
+        SetFields();
+        changingSpecie = false;
+    }
+
+    public void SetFields()
+    {
+        sensorAngleField.text = settings.species[activeSpecie].sensorAngle.ToString("0.000");
+        rotationAngleField.text = settings.species[activeSpecie].rotationAngle.ToString("0.000");
+        sensorDistanceField.text = settings.species[activeSpecie].sensorDist.ToString("0.000");
+        trailWeightField.text = settings.species[activeSpecie].trailWeight.ToString("0.000");
+        velocityField.text = settings.species[activeSpecie].velocity.ToString("0.000");
+        rField.text = settings.species[activeSpecie].color[0].ToString("0.00");
+        gField.text = settings.species[activeSpecie].color[1].ToString("0.00");
+        bField.text = settings.species[activeSpecie].color[2].ToString("0.00");
+        aField.text = settings.species[activeSpecie].color[3].ToString("0.00");
+    }
+
+    bool ValidField(string field)
+    {
+        try
+        {
+            float.Parse(field);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }   
+    }
+
+    public void UpdateSpecie()
+    {
+        if (ValidField(sensorAngleField.text) && !changingSpecie)
+        {
+            settings.species[activeSpecie].sensorAngle = float.Parse(sensorAngleField.text);
+        }
+
+        if (ValidField(rotationAngleField.text) && !changingSpecie)
+        {
+            settings.species[activeSpecie].rotationAngle = float.Parse(rotationAngleField.text);
+        }
+
+        if (ValidField(sensorDistanceField.text) && !changingSpecie)
+        {
+            settings.species[activeSpecie].sensorDist = (int)float.Parse(sensorDistanceField.text);
+        }
+
+        if (ValidField(trailWeightField.text) && !changingSpecie)
+        {
+            settings.species[activeSpecie].trailWeight = float.Parse(trailWeightField.text);
+        }
+
+        if (ValidField(velocityField.text) && !changingSpecie)
+        {
+            Debug.Log(velocityField.text);
+            Debug.Log(float.Parse(velocityField.text));
+            settings.species[activeSpecie].velocity = float.Parse(velocityField.text);
+        }
+
+        if (ValidField(rField.text) && ValidField(gField.text) && ValidField(bField.text) && ValidField(aField.text) && !changingSpecie)
+        {
+            settings.species[activeSpecie].color = new Vector4(
+                float.Parse(rField.text),
+                float.Parse(gField.text),
+                float.Parse(bField.text),
+                float.Parse(aField.text)
+            );
+        }
+        
+        ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
+        computeSim.SetBuffer(updateKernel, "species", speciesBuffer);
+        computeSim.SetBuffer(paintKernel, "species", speciesBuffer); 
+    }
+
+    void Update()
+    {
+        // if the user is holding down the left mouse button and the food placement toggle is on, place food
+
     }
 
     void FixedUpdate()
@@ -195,6 +295,7 @@ public class SlimeSimulation : MonoBehaviour
             Erase();
         }
     }
+
 
     void PlaceFood()
     {
