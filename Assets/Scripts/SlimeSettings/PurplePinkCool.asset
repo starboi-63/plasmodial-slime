@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7aa054fc266ce456bba05390d06293fa, type: 3}
-  m_Name: DummySettings
+  m_Name: PurplePinkCool
   m_EditorClassIdentifier: 
   numAgents: 100000
   vpWidth: 512

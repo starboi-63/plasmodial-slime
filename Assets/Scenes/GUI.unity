@@ -876,7 +876,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 1
+  m_UiScaleMode: 0
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
@@ -5056,7 +5056,7 @@ MonoBehaviour:
   togglePlayText: {fileID: 1235937129}
   toggleFoodText: {fileID: 1833047423}
   toggleEraseText: {fileID: 1073472406}
-  settings: {fileID: 11400000, guid: 86d8a552965f44b50a22d46352bd8e9d, type: 2}
+  settings: {fileID: 11400000, guid: f93fe4d94fca14dc89c47a23f8500457, type: 2}
   speciesDropdown: {fileID: 1128720325}
   sensorAngleField: {fileID: 573578019}
   rotationAngleField: {fileID: 382135967}

@@ -129,7 +129,7 @@ public class SlimeSimulation : MonoBehaviour
             agents.Add( new SlimeAgent {
                 position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
                 angle = randAngle,
-                speciesID = 0
+                speciesID = (int)Math.Floor(2*UnityEngine.Random.value)
             });
         }
 
