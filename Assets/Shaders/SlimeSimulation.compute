@@ -2,7 +2,7 @@
 
 // redefine necessary structs
 struct SlimeAgent {
-    float2 position;
+    float2 position; // canvas space
     float angle; // direction agent faces in radians
     int speciesID; // identifying index into species buffer 
 };
@@ -220,9 +220,10 @@ void Erase (uint3 id : SV_DispatchThreadID)
 
 #pragma kernel ClearTextures
 
+RWTexture2D<float4> ClearTexture;
+
 [numthreads(8,8,1)]
 void ClearTextures (uint3 id : SV_DispatchThreadID)
 {
-    TrailMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
-    FoodMap[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
+    ClearTexture[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
 }

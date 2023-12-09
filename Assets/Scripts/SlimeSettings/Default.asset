@@ -20,6 +20,9 @@ MonoBehaviour:
   diffuseRate: 1
   foodBrushRadius: 25
   foodColor: {x: 0.882, y: 0.682, z: 0.376, w: 1}
+  slimeBrushRadius: 25
+  slimeBrushDensity: 5
+  eraseBrushRadius: 100
   species:
   - sensorAngle: 0.79
     rotationAngle: 0.98
