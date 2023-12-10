@@ -133,16 +133,17 @@ public class SlimeSimulation : MonoBehaviour
         agents.Add(new SlimeAgent {
             position = agentPos,
             angle = randAngle,
-            speciesID = (int)Math.Floor(2*UnityEngine.Random.value)
+            speciesID = activeSpecie
         });
     }
 
     public void CreateAgents()
     {
-               // intialize agent positions within circle 
+        // intialize agent positions within circle 
         agents = new List<SlimeAgent>(settings.numAgents);
         for (int i = 0; i < settings.numAgents; i++)
         {
+            // (int)Math.Floor(2*UnityEngine.Random.value)
             addAgent(true, new Vector2());
         }
 
@@ -357,7 +358,7 @@ public class SlimeSimulation : MonoBehaviour
                     Vector2 currPos = new Vector2(x, y);
                     bool inRadius = ((currPos - clickPos).magnitude <= settings.slimeBrushRadius);
 
-                    if (inRadius && (Random.value * 100 < settings.slimeBrushDensity)) 
+                    if (inRadius && (UnityEngine.Random.value * 100 < settings.slimeBrushDensity)) 
                     {
                         addAgent(false, currPos);
                     }
