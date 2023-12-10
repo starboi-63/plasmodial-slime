@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7aa054fc266ce456bba05390d06293fa, type: 3}
-  m_Name: Default
+  m_Name: PurplePinkCool
   m_EditorClassIdentifier: 
   numAgents: 100000
   vpWidth: 512
@@ -20,18 +20,33 @@ MonoBehaviour:
   diffuseRate: 1
   foodBrushRadius: 25
   foodColor: {x: 0.882, y: 0.682, z: 0.376, w: 1}
-<<<<<<< HEAD
-  slimeBrushRadius: 25
-  slimeBrushDensity: 5
-  eraseBrushRadius: 100
-=======
   eraseBrushRadius: 25
->>>>>>> b24003fe677c834aada62c7c5cdf7bfd9de7c175
   species:
   - sensorAngle: 0.78
     rotationAngle: 0.78
     sensorDist: 9
     sensorRadius: 1
-    velocity: 3
+    velocity: 1
+    trailWeight: 0.5
+    color: {x: 1, y: 0.2, z: 1, w: 1}
+  - sensorAngle: 0.78
+    rotationAngle: 0.78
+    sensorDist: 9
+    sensorRadius: 1
+    velocity: 1
+    trailWeight: 0.5
+    color: {x: 0.5, y: 0.3, z: 1, w: 1}
+  - sensorAngle: 0.78
+    rotationAngle: 0.78
+    sensorDist: 9
+    sensorRadius: 1
+    velocity: 1
+    trailWeight: 0.5
+    color: {x: 1, y: 1, z: 1, w: 1}
+  - sensorAngle: 0.78
+    rotationAngle: 0.78
+    sensorDist: 9
+    sensorRadius: 1
+    velocity: 1
     trailWeight: 0.5
     color: {x: 1, y: 1, z: 1, w: 1}
