@@ -52,12 +52,15 @@ public class SlimeSimulation : MonoBehaviour
     public RenderTexture viewportTex;
     public RenderTexture trailMap;
     public RenderTexture nextTrailMap;
-    public RenderTexture foodMap; 
-
-    public List<SlimeAgent> agents; // current agents, cpu side
-    public SlimeAgent[] agentArray; // current agents, gpu side
+    public RenderTexture foodMap;
+    
+    public List<SlimeAgent> agents;
+    public HashSet<FoodSource> foodSources = new();
+    public SlimeAgent[] agentArray;
+    public FoodSource[] foodSourceArray;
     ComputeBuffer agentBuffer;
     ComputeBuffer speciesBuffer;
+    ComputeBuffer foodBuffer;
 
     // Start is called before the first frame update
     void Start()
@@ -95,6 +98,14 @@ public class SlimeSimulation : MonoBehaviour
 
         CreateAgents();
 
+        foodSources.Add(new FoodSource
+        {
+            position = new Vector2(0, 0),
+            attractorStrength = 0,
+            amount = 0
+        });
+        SetFood();
+
         ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
         computeSim.SetBuffer(updateKernel, "species", speciesBuffer);
         computeSim.SetBuffer(paintKernel, "species", speciesBuffer); 
@@ -105,8 +116,10 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetFloat("decayRate", settings.decayRate);
         computeSim.SetFloat("diffuseRate", settings.diffuseRate);
 
-        computeSim.SetInt("foodBrushRadius", settings.foodBrushRadius);
+        computeSim.SetInt("foodSourceSize", settings.foodSourceSize);
         computeSim.SetVector("foodColor", settings.foodColor);
+        computeSim.SetFloat("cAttraction", settings.foodAttractionCoefficient);
+        computeSim.SetBool("foodDepletionEnabled", settings.foodDepletionEnabled);
 
         computeSim.SetInt("eraseBrushRadius", settings.eraseBrushRadius);
 
@@ -114,7 +127,7 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
-    public void addAgent(bool randomPos, Vector2 pos) 
+    public void AddAgent(bool randomPos, Vector2 pos) 
     {
         // add a singular agent to the end of the agents list 
         // initializes agent at a random position if (randomPos). else uses the specified pos 
@@ -133,7 +146,8 @@ public class SlimeSimulation : MonoBehaviour
         agents.Add(new SlimeAgent {
             position = agentPos,
             angle = randAngle,
-            speciesID = activeSpecie
+            speciesID = activeSpecie,
+            hunger = 0
         });
     }
 
@@ -144,7 +158,7 @@ public class SlimeSimulation : MonoBehaviour
         for (int i = 0; i < settings.numAgents; i++)
         {
             // (int)Math.Floor(2*UnityEngine.Random.value)
-            addAgent(true, new Vector2());
+            AddAgent(true, new Vector2());
         }
 
         SetAgents();
@@ -160,6 +174,24 @@ public class SlimeSimulation : MonoBehaviour
             computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
             computeSim.SetInt("numAgents", agentArray.Length);
         }
+    }
+
+    public void GetFood()
+    {
+        foodBuffer.GetData(foodSourceArray);
+        foodSources = new HashSet<FoodSource>(foodSourceArray);
+    }
+
+    public void SetFood()
+    {
+        foodSourceArray = new FoodSource[foodSources.Count];
+        foodSources.CopyTo(foodSourceArray);
+
+        // passing food data + other uniforms
+        ComputeUtil.CreateBuffer(ref foodBuffer, foodSourceArray);
+        computeSim.SetBuffer(updateKernel, "foodSources", foodBuffer);
+        computeSim.SetBuffer(foodKernel, "foodSources", foodBuffer);
+        computeSim.SetInt("numFoodSources", foodSourceArray.Length);
     }
 
     //###########################################################################
@@ -267,15 +299,6 @@ public class SlimeSimulation : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (playing)
-        {
-            for (int i = 0; i < settings.simsPerFrame; i++) 
-            {
-                Simulate();
-            }
-        }
-
-        // if left mouse button was clicked
         if (Input.GetButton("Fire1")) {
             switch (brushType)
             {
@@ -291,6 +314,18 @@ public class SlimeSimulation : MonoBehaviour
             }
         }
 
+        if (playing)
+        {
+            for (int i = 0; i < settings.simsPerFrame; i++) 
+            {
+                Simulate();
+            }
+        }
+
+        // if left mouse button was clicked
+        
+        UpdateFood();
+
         Paint();
     }
 
@@ -299,25 +334,29 @@ public class SlimeSimulation : MonoBehaviour
     {
         // store position of click in screen space
         Vector2 screenPos = new(Input.mousePosition.x, Input.mousePosition.y);
-
         // convert screen space click position to the coordinate space of the viewport
         RectTransformUtility.ScreenPointToLocalPointInRectangle(viewport.rectTransform, screenPos, null, out Vector2 canvasPos);
         bool withinCanvas = viewport.rectTransform.rect.Contains(canvasPos);
-
-        // debug logging
-        Debug.Log("Click Detected!");
-        Debug.Log("Within Canvas: " + withinCanvas);
-        Debug.Log("Canvas Position: " + canvasPos);
-
         // if the click was within the canvas, pass the click position to the compute shader and paint food
         if (withinCanvas)
         {
-            Debug.Log("Painting Food!");
-            computeSim.SetVector("clickPos", canvasPos + new Vector2(settings.vpWidth / 2, settings.vpHeight / 2));
-            computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-        }
+            Vector2 shiftedCanvasPos = canvasPos + new Vector2(settings.vpWidth / 2, settings.vpHeight / 2);
+            FoodSource newFoodSource = new()
+            {
+                position = shiftedCanvasPos,
+                attractorStrength = settings.foodAttractionCoefficient,
+                amount = 1000000,
+            };
 
-        Paint();
+            if (!foodSources.Contains(newFoodSource))
+            {
+                // add food source to list of attractors
+                GetFood();
+                foodSources.Add(newFoodSource);
+                SetFood();
+
+            }
+        }
     }
 
     void PlaceSlime()
@@ -360,7 +399,7 @@ public class SlimeSimulation : MonoBehaviour
 
                     if (inRadius && (UnityEngine.Random.value * 100 < settings.slimeBrushDensity)) 
                     {
-                        addAgent(false, currPos);
+                        AddAgent(false, currPos);
                     }
                 }
             }
@@ -442,6 +481,12 @@ public class SlimeSimulation : MonoBehaviour
     {
         computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
         computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+    }
+
+    void UpdateFood()
+    {
+        ClearFood();
+        computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 
     void Simulate()

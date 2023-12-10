@@ -11,7 +11,10 @@ public class SimulationSettings : ScriptableObject
     public int simsPerFrame = 10;
     public float decayRate = 1;
     public float diffuseRate = 1;  
-    public int foodBrushRadius = 5;
+    public float foodAttractionCoefficient = 5;
+    
+    public bool foodDepletionEnabled = true;
+    public int foodSourceSize = 10;
     public Vector4 foodColor = new Vector4(0.882f, 0.682f, 0.376f, 1.0f);
     public int slimeBrushRadius = 5;
     public int slimeBrushDensity = 20;
@@ -27,6 +30,7 @@ public class SimulationSettings : ScriptableObject
         public int sensorRadius;
         public float velocity;
         public float trailWeight;
+        public float hungerDecayRate;
         public Vector4 color;
     };
 
