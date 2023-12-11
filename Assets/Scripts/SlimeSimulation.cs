@@ -27,6 +27,8 @@ public class SlimeSimulation : MonoBehaviour
 
     public SimulationSettings settings;
     public TMP_InputField brushRadiusField;
+    public TMP_InputField trailDecayField;
+    public TMP_InputField trailDiffuseField;
 
     // species handlers
     public TMP_Dropdown speciesDropdown;
@@ -70,6 +72,7 @@ public class SlimeSimulation : MonoBehaviour
     {
         SetFields();
         ToggleBrush();
+        
         // Initialize agent, trail, and color buffers
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
@@ -111,8 +114,8 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetInt("width", settings.vpWidth);
         computeSim.SetInt("height", settings.vpHeight);
 
-        computeSim.SetFloat("decayRate", settings.decayRate);
-        computeSim.SetFloat("diffuseRate", settings.diffuseRate);
+        trailDecayField.text = settings.decayRate.ToString("0.000");
+        trailDiffuseField.text = settings.diffuseRate.ToString("0.000");
 
         computeSim.SetInt("foodSourceSize", settings.foodSourceSize);
         computeSim.SetVector("foodColor", settings.foodColor);
@@ -247,10 +250,29 @@ public class SlimeSimulation : MonoBehaviour
                     settings.slimeBrushRadius = radius;
                     break;
                 case 2:
-                    settings.eraseBrushRadius = (int)MathF.Round(float.Parse(brushRadiusField.text));
+                    settings.eraseBrushRadius = radius;
                     computeSim.SetInt("eraseBrushRadius", settings.eraseBrushRadius);
                     break;
             }
+        }
+    }
+
+    public void UpdateDecay()
+    {
+        if (ValidField(trailDecayField.text))
+        {
+            settings.decayRate = float.Parse(trailDecayField.text);
+            computeSim.SetFloat("decayRate", settings.decayRate);
+        }
+    }
+
+    public void UpdateDiffuse()
+    {
+        if (ValidField(trailDiffuseField.text))
+        {
+            Debug.Log("updated");
+            settings.diffuseRate = float.Parse(trailDiffuseField.text);
+            computeSim.SetFloat("diffuseRate", settings.diffuseRate);
         }
     }
 

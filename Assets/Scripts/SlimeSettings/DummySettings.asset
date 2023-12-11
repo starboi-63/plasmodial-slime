@@ -16,7 +16,7 @@ MonoBehaviour:
   vpWidth: 512
   vpHeight: 512
   simsPerFrame: 25
-  decayRate: 0.01
+  decayRate: 0.03
   diffuseRate: 1
   foodAttractionCoefficient: 5
   foodDepletionEnabled: 1
