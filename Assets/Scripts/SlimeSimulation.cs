@@ -232,7 +232,7 @@ public class SlimeSimulation : MonoBehaviour
         SetAgents();
     }
 
-    void SuperNova(Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
+    void Supernova(Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
     {
         float angle = rotation;
         float angleIncrement = 2 * Mathf.PI / (float)numPoints;
