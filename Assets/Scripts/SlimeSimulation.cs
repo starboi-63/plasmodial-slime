@@ -170,6 +170,23 @@ public class SlimeSimulation : MonoBehaviour
         SetAgents();
     }
 
+    public void BigBang()
+    {
+        agents = new List<SlimeAgent>(settings.numAgents);
+        for (int i = 0; i < settings.numAgents; i++)
+        {
+            float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
+
+            agents.Add(new SlimeAgent {
+                position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2),
+                angle = randomTheta,
+                speciesID = (int)Mathf.Floor(4 * UnityEngine.Random.value),
+                hunger = 0
+            });
+        }
+        SetAgents();
+    }
+
     public void SetAgents()
     {
         agentArray = agents.ToArray();
