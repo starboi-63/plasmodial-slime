@@ -18,9 +18,13 @@ MonoBehaviour:
   simsPerFrame: 25
   decayRate: 0.01
   diffuseRate: 1
-  foodBrushRadius: 25
+  foodAttractionCoefficient: 5
+  foodDepletionEnabled: 1
+  foodSourceSize: 50
   foodColor: {x: 0.882, y: 0.682, z: 0.376, w: 1}
-  eraseBrushRadius: 25
+  slimeBrushRadius: 15
+  slimeBrushDensity: 20
+  eraseBrushRadius: 50
   species:
   - sensorAngle: 0.78
     rotationAngle: 0.78
@@ -28,6 +32,7 @@ MonoBehaviour:
     sensorRadius: 1
     velocity: 1
     trailWeight: 0.5
+    hungerDecayRate: 0.5
     color: {x: 1, y: 0.2, z: 1, w: 1}
   - sensorAngle: 0.78
     rotationAngle: 0.78
@@ -35,6 +40,7 @@ MonoBehaviour:
     sensorRadius: 1
     velocity: 1
     trailWeight: 0.5
+    hungerDecayRate: 0
     color: {x: 0.5, y: 0.3, z: 1, w: 1}
   - sensorAngle: 0.78
     rotationAngle: 0.78
@@ -42,11 +48,13 @@ MonoBehaviour:
     sensorRadius: 1
     velocity: 1
     trailWeight: 0.5
-    color: {x: 1, y: 1, z: 1, w: 1}
+    hungerDecayRate: 0
+    color: {x: 0.1, y: 0.8, z: 0.3, w: 1}
   - sensorAngle: 0.78
     rotationAngle: 0.78
     sensorDist: 9
     sensorRadius: 1
     velocity: 1
     trailWeight: 0.5
-    color: {x: 1, y: 1, z: 1, w: 1}
+    hungerDecayRate: 0
+    color: {x: 0.1, y: 0.3, z: 0.9, w: 1}

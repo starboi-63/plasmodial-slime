@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine.UIElements;
 using System.Security.Cryptography;
 using System;
+using System.IO;
 
 public class SlimeSimulation : MonoBehaviour
 {
@@ -25,6 +26,7 @@ public class SlimeSimulation : MonoBehaviour
     public TMP_Text togglePlayText;
 
     public SimulationSettings settings;
+    public TMP_InputField brushRadiusField;
 
     // species handlers
     public TMP_Dropdown speciesDropdown;
@@ -67,6 +69,7 @@ public class SlimeSimulation : MonoBehaviour
     void Start()
     {
         SetFields();
+        ToggleBrush();
         // Initialize agent, trail, and color buffers
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
@@ -215,6 +218,40 @@ public class SlimeSimulation : MonoBehaviour
     public void ToggleBrush() 
     {
         brushType = brushDropdown.value;
+        switch (brushType) 
+        {
+            case 0:
+                brushRadiusField.text = settings.foodSourceSize.ToString();
+                break;
+            case 1:
+                brushRadiusField.text = settings.slimeBrushRadius.ToString();
+                break;
+            case 2:
+                brushRadiusField.text = settings.eraseBrushRadius.ToString();
+                break;
+        }
+    }
+
+    public void UpdateRadii()
+    {
+        if (ValidField(brushRadiusField.text))
+        {
+            int radius = (int)MathF.Round(float.Parse(brushRadiusField.text));
+            switch (brushType) 
+            {  
+                case 0:
+                    settings.foodSourceSize = radius;
+                    computeSim.SetInt("foodSourceSize", settings.foodSourceSize);
+                    break;
+                case 1:
+                    settings.slimeBrushRadius = radius;
+                    break;
+                case 2:
+                    settings.eraseBrushRadius = (int)MathF.Round(float.Parse(brushRadiusField.text));
+                    computeSim.SetInt("eraseBrushRadius", settings.eraseBrushRadius);
+                    break;
+            }
+        }
     }
 
     public void TogglePlaying()
@@ -237,6 +274,23 @@ public class SlimeSimulation : MonoBehaviour
         changingSpecie = true;
         SetFields();
         changingSpecie = false;
+    }
+
+    public void SaveImage()
+    {
+        RenderTexture prevTexture = RenderTexture.active;
+        RenderTexture.active = viewportTex;
+
+        Texture2D copyTex = new Texture2D(settings.vpWidth, settings.vpHeight);
+        copyTex.ReadPixels(new Rect(0, 0, viewportTex.width, viewportTex.height), 0, 0);
+        copyTex.Apply();
+
+        RenderTexture.active = prevTexture;
+
+        string path = Application.persistentDataPath + "/" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".png";
+        Debug.Log(path);
+        byte[] imageData = copyTex.EncodeToPNG();
+        File.WriteAllBytes(path, imageData);
     }
 
     //###########################################################################

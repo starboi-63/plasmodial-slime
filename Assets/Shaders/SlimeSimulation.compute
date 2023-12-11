@@ -263,7 +263,8 @@ float4 foodColor;
 [numthreads(8,8,1)]
 void PaintSlimeSimulation (uint3 id : SV_DispatchThreadID)
 {
-    ViewportTex[id.xy] = TrailMap[id.xy].x * species[0].color;
+    ViewportTex[id.xy] = float4(0, 0, 0, 1);
+    ViewportTex[id.xy] += TrailMap[id.xy].x * species[0].color;
     ViewportTex[id.xy] += TrailMap[id.xy].y * species[1].color;
     ViewportTex[id.xy] += TrailMap[id.xy].z * species[2].color;
     ViewportTex[id.xy] += TrailMap[id.xy].a * species[3].color;
