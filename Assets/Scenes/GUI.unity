@@ -12826,8 +12826,6 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Big Bang
       m_Image: {fileID: 0}
-    - m_Text: Firework
-      m_Image: {fileID: 0}
     - m_Text: Starburst
       m_Image: {fileID: 0}
   m_OnValueChanged:
