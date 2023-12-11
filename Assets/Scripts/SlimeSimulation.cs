@@ -110,7 +110,7 @@ public class SlimeSimulation : MonoBehaviour
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         ClearAll();
         
-        CreateAgents();
+        ToggleInitialize();
 
         SetFood();
 
@@ -135,38 +135,29 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
-    public void AddAgent(bool randomPos, Vector2 pos) 
+    public void AddCricleAgent() 
     {
-        // add a singular agent to the end of the agents list 
-        // initializes agent at a random position if (randomPos). else uses the specified pos 
-        // angle is random, species is hard coded to be 0 for now 
         float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
         float randomR = (float)UnityEngine.Random.value * 250;
         float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
         float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
         float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
 
-        Vector2 agentPos = pos; 
-        if (randomPos) {
-            agentPos = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY);
-        }
-
         agents.Add(new SlimeAgent {
-            position = agentPos,
+            position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
             angle = randAngle,
             speciesID = activeSpecie,
             hunger = 0
         });
     }
 
-    public void CreateAgents()
+    public void CircleAgents()
     {
         // intialize agent positions within circle 
         agents = new List<SlimeAgent>(settings.numAgents);
         for (int i = 0; i < settings.numAgents; i++)
         {
-            // (int)Math.Floor(2*UnityEngine.Random.value)
-            AddAgent(true, new Vector2());
+            AddCricleAgent();
         }
 
         SetAgents();
@@ -253,13 +244,12 @@ public class SlimeSimulation : MonoBehaviour
         switch (intialize) 
         {
             case 0:
-                
                 break;
             case 1:
-
+                CircleAgents();
                 break;
             case 2:
-                
+                BigBang();
                 break;
             case 3:
                 
