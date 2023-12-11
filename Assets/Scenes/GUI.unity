@@ -1477,7 +1477,7 @@ GameObject:
   - component: {fileID: 324737996}
   - component: {fileID: 324737995}
   m_Layer: 5
-  m_Name: VelocityFieldText (2)
+  m_Name: ColorText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1499,8 +1499,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: -145.6}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -415.9513, y: -145.6}
+  m_SizeDelta: {x: 36.6974, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &324737995
 MonoBehaviour:
@@ -2109,8 +2109,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: -18}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -381.54694, y: -18}
+  m_SizeDelta: {x: 105.5061, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &463986647
 MonoBehaviour:
@@ -2450,8 +2450,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: 14}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -386.70178, y: 14}
+  m_SizeDelta: {x: 95.1964, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &485754795
 MonoBehaviour:
@@ -2710,8 +2710,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: -82}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -403.6391, y: -82}
+  m_SizeDelta: {x: 61.3218, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &518681117
 MonoBehaviour:
@@ -6482,8 +6482,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: 114}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -394.80225, y: 114}
+  m_SizeDelta: {x: 78.9955, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1227406977
 MonoBehaviour:
@@ -7364,8 +7364,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: 178.1}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -383.75616, y: 178.1}
+  m_SizeDelta: {x: 101.0876, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1352729222
 MonoBehaviour:
@@ -7498,8 +7498,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: -50}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -394.8, y: -50}
+  m_SizeDelta: {x: 78.995, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1357448020
 MonoBehaviour:
@@ -7632,8 +7632,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: 46}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -390.01562, y: 46}
+  m_SizeDelta: {x: 88.5687, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1371788424
 MonoBehaviour:
@@ -8754,7 +8754,7 @@ GameObject:
   - component: {fileID: 1659676442}
   - component: {fileID: 1659676441}
   m_Layer: 5
-  m_Name: VelocityFieldText (1)
+  m_Name: HungerDecayText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8776,8 +8776,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: -114}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -386.7, y: -114}
+  m_SizeDelta: {x: 95.196, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1659676441
 MonoBehaviour:
@@ -9810,8 +9810,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -354.3, y: 145.9}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: -396.64325, y: 145.9}
+  m_SizeDelta: {x: 75.3134, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1825872378
 MonoBehaviour:
