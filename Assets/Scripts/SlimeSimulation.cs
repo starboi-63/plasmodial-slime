@@ -15,6 +15,12 @@ public class SlimeSimulation : MonoBehaviour
     // UI Vars
     public RawImage viewport;
 
+    // where 0 = placing food
+    //       1 = placing slime
+    //       2 = erasing
+    public int intialize = 0;
+    public TMP_Dropdown initializeDropdown;
+
     public bool playing = false;
 
     // where 0 = placing food
