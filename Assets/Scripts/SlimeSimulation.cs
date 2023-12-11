@@ -41,7 +41,6 @@ public class SlimeSimulation : MonoBehaviour
     public TMP_InputField rField;
     public TMP_InputField gField;
     public TMP_InputField bField;
-    public TMP_InputField aField;
     public int activeSpecie = 0;
     private bool changingSpecie = false;
 
@@ -328,7 +327,6 @@ public class SlimeSimulation : MonoBehaviour
         rField.text = settings.species[activeSpecie].color[0].ToString("0.00");
         gField.text = settings.species[activeSpecie].color[1].ToString("0.00");
         bField.text = settings.species[activeSpecie].color[2].ToString("0.00");
-        aField.text = settings.species[activeSpecie].color[3].ToString("0.00");
     }
 
     bool ValidField(string field)
@@ -376,13 +374,13 @@ public class SlimeSimulation : MonoBehaviour
             settings.species[activeSpecie].hungerDecayRate = float.Parse(hungerDecayField.text);
         }
 
-        if (ValidField(rField.text) && ValidField(gField.text) && ValidField(bField.text) && ValidField(aField.text) && !changingSpecie)
+        if (ValidField(rField.text) && ValidField(gField.text) && ValidField(bField.text) && !changingSpecie)
         {
             settings.species[activeSpecie].color = new Vector4(
                 float.Parse(rField.text),
                 float.Parse(gField.text),
                 float.Parse(bField.text),
-                float.Parse(aField.text)
+                1.0F
             );
         }
         
