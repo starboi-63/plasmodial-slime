@@ -128,8 +128,12 @@ void step(int agentIdx) {
 }
 
 float2 foodForce(int agentIdx) {
+    if (numFoodSources == 0) {
+        return float2(0.0, 0.0);
+    }
+
     SlimeAgent agent = slimeAgents[agentIdx];
-    int closestFoodIndex = 0;
+    int closestFoodIndex = -1;
     float minDist = 1000000000; // large value beyond any possible on-screen distance
 
     // determine the closest food source that is active
@@ -211,7 +215,11 @@ void UpdateSlimeSimulation (uint3 id : SV_DispatchThreadID)
         slimeAgents[id.x].angle += 0;
     }
 
-    float2 forceOnAgent = foodForce(id.x);
+    float2 forceOnAgent = float2(0.0, 0.0);
+    
+    if (numFoodSources > 0) {
+        forceOnAgent = foodForce(id.x);
+    }
 
     if (length(forceOnAgent) > 0) {
         float forceComponent = length(forceOnAgent);

@@ -33,6 +33,7 @@ public class SlimeSimulation : MonoBehaviour
     public TMP_InputField sensorDistanceField;
     public TMP_InputField trailWeightField;
     public TMP_InputField velocityField;
+    public TMP_InputField hungerDecayField;
     public TMP_InputField rField;
     public TMP_InputField gField;
     public TMP_InputField bField;
@@ -95,15 +96,9 @@ public class SlimeSimulation : MonoBehaviour
 
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         ClearAll();
-
+        
         CreateAgents();
 
-        foodSources.Add(new FoodSource
-        {
-            position = new Vector2(0, 0),
-            attractorStrength = 0,
-            amount = 0
-        });
         SetFood();
 
         ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
@@ -169,7 +164,8 @@ public class SlimeSimulation : MonoBehaviour
         agentArray = agents.ToArray();
 
         // passing agent data + other uniforms
-        if (agents.Count > 0) {
+        if (agents.Count > 0) 
+        {
             ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
             computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
             computeSim.SetInt("numAgents", agentArray.Length);
@@ -178,20 +174,38 @@ public class SlimeSimulation : MonoBehaviour
 
     public void GetFood()
     {
-        foodBuffer.GetData(foodSourceArray);
-        foodSources = new HashSet<FoodSource>(foodSourceArray);
+        if (foodSources.Count > 0)
+        {
+            foodBuffer.GetData(foodSourceArray);
+            foodSources = new HashSet<FoodSource>(foodSourceArray);
+        }
     }
 
     public void SetFood()
     {
-        foodSourceArray = new FoodSource[foodSources.Count];
-        foodSources.CopyTo(foodSourceArray);
-
         // passing food data + other uniforms
-        ComputeUtil.CreateBuffer(ref foodBuffer, foodSourceArray);
-        computeSim.SetBuffer(updateKernel, "foodSources", foodBuffer);
-        computeSim.SetBuffer(foodKernel, "foodSources", foodBuffer);
-        computeSim.SetInt("numFoodSources", foodSourceArray.Length);
+        if (foodSources.Count > 0)
+        {
+            foodSourceArray = new FoodSource[foodSources.Count];
+            foodSources.CopyTo(foodSourceArray);   
+            ComputeUtil.CreateBuffer(ref foodBuffer, foodSourceArray);
+            computeSim.SetBuffer(updateKernel, "foodSources", foodBuffer);
+            computeSim.SetBuffer(foodKernel, "foodSources", foodBuffer);
+            computeSim.SetInt("numFoodSources", foodSourceArray.Length);
+        }
+        else
+        {
+            computeSim.SetInt("numFoodSources", 0);
+            FoodSource[] dummy = new FoodSource[1];
+            dummy[0] = new FoodSource {
+                position = new Vector2(0, 0),
+                attractorStrength = 0.0F,
+                amount = 0
+            };
+            ComputeUtil.CreateBuffer(ref foodBuffer, dummy);
+            computeSim.SetBuffer(updateKernel, "foodSources", foodBuffer);
+        }
+
     }
 
     //###########################################################################
@@ -234,6 +248,7 @@ public class SlimeSimulation : MonoBehaviour
         sensorDistanceField.text = settings.species[activeSpecie].sensorDist.ToString("0.000");
         trailWeightField.text = settings.species[activeSpecie].trailWeight.ToString("0.000");
         velocityField.text = settings.species[activeSpecie].velocity.ToString("0.000");
+        hungerDecayField.text = settings.species[activeSpecie].hungerDecayRate.ToString("0.000");
         rField.text = settings.species[activeSpecie].color[0].ToString("0.00");
         gField.text = settings.species[activeSpecie].color[1].ToString("0.00");
         bField.text = settings.species[activeSpecie].color[2].ToString("0.00");
@@ -277,9 +292,12 @@ public class SlimeSimulation : MonoBehaviour
 
         if (ValidField(velocityField.text) && !changingSpecie)
         {
-            Debug.Log(velocityField.text);
-            Debug.Log(float.Parse(velocityField.text));
             settings.species[activeSpecie].velocity = float.Parse(velocityField.text);
+        }
+
+        if (ValidField(hungerDecayField.text) && !changingSpecie)
+        {
+            settings.species[activeSpecie].hungerDecayRate = float.Parse(hungerDecayField.text);
         }
 
         if (ValidField(rField.text) && ValidField(gField.text) && ValidField(bField.text) && ValidField(aField.text) && !changingSpecie)
@@ -462,16 +480,30 @@ public class SlimeSimulation : MonoBehaviour
     {
         computeSim.SetTexture(clearKernel, "ClearTexture", trailMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-        computeSim.SetTexture(clearKernel, "ClearTexture", foodMap);
-        computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        
+        ClearFood();
 
-        if (agents != null) {
+        if (agents != null) 
+        {
             agents.Clear();
             SetAgents();
         }
+
+        
     }
 
     public void ClearFood()
+    {
+        ClearFoodTexture();
+
+        if (foodSources.Count != 0) 
+        {
+            foodSources.Clear();
+            SetFood();
+        }
+    }
+
+    public void ClearFoodTexture()
     {
         computeSim.SetTexture(clearKernel, "ClearTexture", foodMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
@@ -485,8 +517,11 @@ public class SlimeSimulation : MonoBehaviour
 
     void UpdateFood()
     {
-        ClearFood();
-        computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        if (foodSources.Count > 0)
+        {
+            ClearFoodTexture();
+            computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        }
     }
 
     void Simulate()
