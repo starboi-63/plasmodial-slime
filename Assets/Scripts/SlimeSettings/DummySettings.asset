@@ -30,7 +30,7 @@ MonoBehaviour:
     rotationAngle: 0.78
     sensorDist: 9
     sensorRadius: 1
-    velocity: 1
+    velocity: 5
     trailWeight: 0.5
     hungerDecayRate: 0.5
     color: {x: 1, y: 0.2, z: 1, w: 1}

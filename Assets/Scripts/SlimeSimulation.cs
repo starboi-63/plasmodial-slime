@@ -232,8 +232,13 @@ public class SlimeSimulation : MonoBehaviour
         SetAgents();
     }
 
-    void Supernova(Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
+    public void Supernova(bool reset, Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
     {
+        if (reset)
+        {
+            agents = new List<SlimeAgent>(settings.numAgents);
+        }
+
         float angle = rotation;
         float angleIncrement = 2 * Mathf.PI / (float)numPoints;
         int agentsPerPoint = numAgents / numPoints;
@@ -251,7 +256,7 @@ public class SlimeSimulation : MonoBehaviour
                     position = agentPos,
                     angle = angle,
                     speciesID = speciesID,
-                    hunger = 1.0
+                    hunger = 1
                 });
             }
 
@@ -297,7 +302,7 @@ public class SlimeSimulation : MonoBehaviour
                 BigBang();
                 break;
             case 3:
-                Supernova();
+                Supernova(true, new Vector2(256, 256), 80, 200, 0, 100000, 0);
                 break;
         }
     }
