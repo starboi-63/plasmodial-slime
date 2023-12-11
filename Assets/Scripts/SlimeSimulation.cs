@@ -15,9 +15,11 @@ public class SlimeSimulation : MonoBehaviour
     // UI Vars
     public RawImage viewport;
 
-    // where 0 = placing food
-    //       1 = placing slime
-    //       2 = erasing
+    // where 0 = none
+    //       1 = circle
+    //       2 = big bang
+    //       3 = firework
+    //       4 = starburst
     public int intialize = 0;
     public TMP_Dropdown initializeDropdown;
 
@@ -220,8 +222,36 @@ public class SlimeSimulation : MonoBehaviour
     }
 
     //###########################################################################
-    // Toggle Functions for UI Button functionality 
+    // Functions for UI Button functionality 
     //###########################################################################
+
+    // where 0 = none
+    //       1 = circle
+    //       2 = big bang
+    //       3 = firework
+    //       4 = starburst
+    public void ToggleInitialize() 
+    {
+        intialize = initializeDropdown.value;
+        switch (intialize) 
+        {
+            case 0:
+                
+                break;
+            case 1:
+
+                break;
+            case 2:
+                
+                break;
+            case 3:
+                
+                break;
+            case 4:
+                
+                break;
+        }
+    }
 
     public void ToggleBrush() 
     {
@@ -419,14 +449,15 @@ public class SlimeSimulation : MonoBehaviour
                 Simulate();
             }
         }
-
-        // if left mouse button was clicked
         
         UpdateFood();
 
         Paint();
     }
 
+    //###########################################################################
+    // Functions for brush functionality 
+    //###########################################################################
 
     void PlaceFood()
     {
@@ -556,6 +587,8 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
+    //###########################################################################
+
     public void ClearAll()
     {
         computeSim.SetTexture(clearKernel, "ClearTexture", trailMap);
@@ -568,8 +601,6 @@ public class SlimeSimulation : MonoBehaviour
             agents.Clear();
             SetAgents();
         }
-
-        
     }
 
     public void ClearFood()

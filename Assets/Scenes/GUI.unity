@@ -6803,6 +6803,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewport: {fileID: 1055386107}
+  intialize: 0
+  initializeDropdown: {fileID: 2139669868}
   playing: 0
   brushType: 0
   brushDropdown: {fileID: 64869952}
@@ -12822,11 +12824,11 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Circle
       m_Image: {fileID: 0}
-    - m_Text: Corners
+    - m_Text: Big Bang
       m_Image: {fileID: 0}
     - m_Text: Firework
       m_Image: {fileID: 0}
-    - m_Text: Star
+    - m_Text: Starburst
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
