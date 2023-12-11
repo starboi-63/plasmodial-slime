@@ -228,23 +228,11 @@ public class SlimeSimulation : MonoBehaviour
                 hunger = 1
             });
         }
+
         SetAgents();
     }
 
-    public void SetAgents()
-    {
-        agentArray = agents.ToArray();
-
-        // passing agent data + other uniforms
-        if (agents.Count > 0)
-        {
-            ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
-            computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
-            computeSim.SetInt("numAgents", agentArray.Length);
-        }
-    }
-
-    void star(Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
+    void SuperNova(Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
     {
         float angle = rotation;
         float angleIncrement = 2 * Mathf.PI / (float)numPoints;
@@ -268,6 +256,21 @@ public class SlimeSimulation : MonoBehaviour
             }
 
             angle += angleIncrement;
+        }
+
+        SetAgents();
+    }
+
+    public void SetAgents()
+    {
+        agentArray = agents.ToArray();
+
+        // passing agent data + other uniforms
+        if (agents.Count > 0)
+        {
+            ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
+            computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
+            computeSim.SetInt("numAgents", agentArray.Length);
         }
     }
 
@@ -294,7 +297,7 @@ public class SlimeSimulation : MonoBehaviour
                 BigBang();
                 break;
             case 3:
-
+                Supernova();
                 break;
         }
     }
