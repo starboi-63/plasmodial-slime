@@ -18,8 +18,7 @@ public class SlimeSimulation : MonoBehaviour
     // where 0 = none
     //       1 = circle
     //       2 = big bang
-    //       3 = firework
-    //       4 = starburst
+    //       3 = starburst
     public int intialize = 0;
     public TMP_Dropdown initializeDropdown;
 
@@ -135,65 +134,7 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
-    public void AddCricleAgent() 
-    {
-        float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
-        float randomR = (float)UnityEngine.Random.value * 250;
-        float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
-        float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
-        float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
-
-        agents.Add(new SlimeAgent {
-            position = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY),
-            angle = randAngle,
-            speciesID = activeSpecie,
-            hunger = 0
-        });
-    }
-
-    public void CircleAgents()
-    {
-        // intialize agent positions within circle 
-        agents = new List<SlimeAgent>(settings.numAgents);
-        for (int i = 0; i < settings.numAgents; i++)
-        {
-            AddCricleAgent();
-        }
-
-        SetAgents();
-    }
-
-    public void BigBang()
-    {
-        agents = new List<SlimeAgent>(settings.numAgents);
-        for (int i = 0; i < settings.numAgents; i++)
-        {
-            float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
-
-            agents.Add(new SlimeAgent {
-                position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2),
-                angle = randomTheta,
-                speciesID = (int)Mathf.Floor(4 * UnityEngine.Random.value),
-                hunger = 0
-            });
-        }
-        SetAgents();
-    }
-
-    public void SetAgents()
-    {
-        agentArray = agents.ToArray();
-
-        // passing agent data + other uniforms
-        if (agents.Count > 0) 
-        {
-            ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
-            computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
-            computeSim.SetInt("numAgents", agentArray.Length);
-        }
-    }
-
-    public void GetFood()
+        public void GetFood()
     {
         if (foodSources.Count > 0)
         {
@@ -229,6 +170,72 @@ public class SlimeSimulation : MonoBehaviour
 
     }
 
+    public void AddAgent(bool randomPos, Vector2 pos) 
+    {
+        // add a singular agent to the end of the agents list 
+        // if randomPos, initializes agent at a random position in circle
+        // else use specified pos 
+        float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
+        float randomR = (float)UnityEngine.Random.value * (settings.vpHeight / 2 - 50);
+        float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
+        float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
+        float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
+
+        Vector2 agentPos = pos; 
+        if (randomPos) {
+            agentPos = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY);
+        }
+
+        agents.Add(new SlimeAgent {
+            position = agentPos,
+            angle = randAngle,
+            speciesID = activeSpecie,
+            hunger = 1
+        });
+    }
+
+    public void CircleAgents()
+    {
+        // intialize agent positions within circle
+        agents = new List<SlimeAgent>(settings.numAgents);
+        for (int i = 0; i < settings.numAgents; i++)
+        {
+            AddAgent(true, new Vector2());
+        }
+
+        SetAgents();
+    }
+
+    public void BigBang()
+    {
+        agents = new List<SlimeAgent>(settings.numAgents);
+        for (int i = 0; i < settings.numAgents; i++)
+        {
+            float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
+
+            agents.Add(new SlimeAgent {
+                position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2),
+                angle = randomTheta,
+                speciesID = (int)Mathf.Floor(4 * UnityEngine.Random.value),
+                hunger = 1
+            });
+        }
+        SetAgents();
+    }
+
+    public void SetAgents()
+    {
+        agentArray = agents.ToArray();
+
+        // passing agent data + other uniforms
+        if (agents.Count > 0) 
+        {
+            ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
+            computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
+            computeSim.SetInt("numAgents", agentArray.Length);
+        }
+    }
+
     //###########################################################################
     // Functions for UI Button functionality 
     //###########################################################################
@@ -236,14 +243,14 @@ public class SlimeSimulation : MonoBehaviour
     // where 0 = none
     //       1 = circle
     //       2 = big bang
-    //       3 = firework
-    //       4 = starburst
+    //       3 = starburst
     public void ToggleInitialize() 
     {
         intialize = initializeDropdown.value;
         switch (intialize) 
         {
             case 0:
+                ClearAll();
                 break;
             case 1:
                 CircleAgents();
@@ -252,9 +259,6 @@ public class SlimeSimulation : MonoBehaviour
                 BigBang();
                 break;
             case 3:
-                
-                break;
-            case 4:
                 
                 break;
         }
