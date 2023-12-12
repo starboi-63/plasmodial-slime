@@ -6803,11 +6803,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewport: {fileID: 1055386107}
-  intialize: 0
+  intializeType: 0
   initializeDropdown: {fileID: 2139669868}
-  playing: 0
   brushType: 0
   brushDropdown: {fileID: 64869952}
+  playing: 0
   togglePlayText: {fileID: 1235937129}
   settings: {fileID: 11400000, guid: f93fe4d94fca14dc89c47a23f8500457, type: 2}
   brushRadiusField: {fileID: 1753924606}
@@ -12833,7 +12833,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1154561991}
         m_TargetAssemblyTypeName: SlimeSimulation, Assembly-CSharp
-        m_MethodName: ToggleInitialize
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -19,10 +19,8 @@ public class SlimeSimulation : MonoBehaviour
     //       1 = circle
     //       2 = big bang
     //       3 = starburst
-    public int intialize = 0;
+    public int intializeType = 0;
     public TMP_Dropdown initializeDropdown;
-
-    public bool playing = false;
 
     // where 0 = placing food
     //       1 = placing slime
@@ -30,6 +28,7 @@ public class SlimeSimulation : MonoBehaviour
     public int brushType = 0;
     public TMP_Dropdown brushDropdown;
 
+    public bool playing = false;
     public TMP_Text togglePlayText;
 
     public SimulationSettings settings;
@@ -64,8 +63,8 @@ public class SlimeSimulation : MonoBehaviour
     public RenderTexture trailMap;
     public RenderTexture nextTrailMap;
     public RenderTexture foodMap;
-
-    public List<SlimeAgent> agents;
+    
+    public List<SlimeAgent> agents = new();
     public HashSet<FoodSource> foodSources = new();
     public SlimeAgent[] agentArray;
     public FoodSource[] foodSourceArray;
@@ -108,8 +107,8 @@ public class SlimeSimulation : MonoBehaviour
 
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         ClearAll();
-
-        ToggleInitialize();
+        
+        Initialize();
 
         SetFood();
 
@@ -283,14 +282,10 @@ public class SlimeSimulation : MonoBehaviour
     // Functions for UI Button functionality 
     //###########################################################################
 
-    // where 0 = none
-    //       1 = circle
-    //       2 = big bang
-    //       3 = starburst
-    public void ToggleInitialize()
+    public void Initialize() 
     {
-        intialize = initializeDropdown.value;
-        switch (intialize)
+        intializeType = initializeDropdown.value;
+        switch (intializeType) 
         {
             case 0:
                 ClearAll();
@@ -377,7 +372,12 @@ public class SlimeSimulation : MonoBehaviour
         {
             togglePlayText.SetText("Play");
         }
-    }
+
+        if ((initializeDropdown.value != intializeType) || (agents.Count == 0))
+        {
+            Initialize();
+        }
+    } 
 
     public void ToggleSpecie()
     {
@@ -555,16 +555,18 @@ public class SlimeSimulation : MonoBehaviour
         bool clickInCanvas = viewport.rectTransform.rect.Contains(canvasPos);
 
         // get current agent data from the gpu
-        if (agents.Count > 0)
+        if (agents != null && agents.Count > 0) 
         {
             agentBuffer.GetData(agentArray);
+
+            // update cpu's current agent data
+            for (int i = 0; i < agents.Count; i++)
+            {
+                agents[i] = agentArray[i];
+            }
         }
 
-        // update cpu's current agent data
-        for (int i = 0; i < agents.Count; i++)
-        {
-            agents[i] = agentArray[i];
-        }
+        
 
         // add agents to the cpu's list of agents if user clicked within canvas
         if (clickInCanvas)
