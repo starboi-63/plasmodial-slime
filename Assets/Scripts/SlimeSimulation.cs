@@ -63,7 +63,7 @@ public class SlimeSimulation : MonoBehaviour
     public RenderTexture trailMap;
     public RenderTexture nextTrailMap;
     public RenderTexture foodMap;
-    
+
     public List<SlimeAgent> agents = new();
     public HashSet<FoodSource> foodSources = new();
     public SlimeAgent[] agentArray;
@@ -107,7 +107,7 @@ public class SlimeSimulation : MonoBehaviour
 
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         ClearAll();
-        
+
         Initialize();
 
         SetFood();
@@ -133,7 +133,7 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
-        void Paint()
+    void Paint()
     {
         computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
         computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
@@ -269,7 +269,7 @@ public class SlimeSimulation : MonoBehaviour
         agentArray = agents.ToArray();
 
         // passing agent data + other uniforms
-        if (agents.Count > 0) 
+        if (agents.Count > 0)
         {
             ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
             computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
@@ -346,10 +346,10 @@ public class SlimeSimulation : MonoBehaviour
     // Functions for UI Button functionality
     //###########################################################################
 
-    public void Initialize() 
+    public void Initialize()
     {
         intializeType = initializeDropdown.value;
-        switch (intializeType) 
+        switch (intializeType)
         {
             case 0:
                 ClearAll();
@@ -361,7 +361,10 @@ public class SlimeSimulation : MonoBehaviour
                 BigBang();
                 break;
             case 3:
-                Supernova(true, new Vector2(256, 256), 80, 200, 0, 100000, 0);
+                Supernova(true, new Vector2(256, 256), 20, 10, 0 * (float)Math.PI / 40F, 25000, 0);
+                Supernova(false, new Vector2(256, 256), 20, 10, 1 * (float)Math.PI / 40F, 25000, 1);
+                Supernova(false, new Vector2(256, 256), 20, 10, 2 * (float)Math.PI / 40F, 25000, 2);
+                Supernova(false, new Vector2(256, 256), 20, 10, 3 * (float)Math.PI / 40F, 25000, 3);
                 break;
         }
     }
@@ -383,7 +386,7 @@ public class SlimeSimulation : MonoBehaviour
         {
             Initialize();
         }
-    } 
+    }
 
     public void ToggleBrush()
     {
@@ -590,7 +593,7 @@ public class SlimeSimulation : MonoBehaviour
         bool clickInCanvas = viewport.rectTransform.rect.Contains(canvasPos);
 
         // get current agent data from the gpu
-        if (agents != null && agents.Count > 0) 
+        if (agents != null && agents.Count > 0)
         {
             agentBuffer.GetData(agentArray);
 
