@@ -15,20 +15,20 @@ public class SlimeSimulation : MonoBehaviour
     // UI Vars
     public RawImage viewport;
 
-    // where 0 = placing food
-    //       1 = placing slime
-    //       2 = erasing
-    public int intialize = 0;
+    // where 0 = none
+    //       1 = circle
+    //       2 = big bang
+    //       3 = starburst
+    public int intializeType = 0;
     public TMP_Dropdown initializeDropdown;
 
-    public bool playing = false;
-
     // where 0 = placing food
     //       1 = placing slime
     //       2 = erasing
-    public int brushType = 0; 
+    public int brushType = 0;
     public TMP_Dropdown brushDropdown;
 
+    public bool playing = false;
     public TMP_Text togglePlayText;
 
     public SimulationSettings settings;
@@ -54,7 +54,7 @@ public class SlimeSimulation : MonoBehaviour
 
     const int updateKernel = 0;
     const int blurKernel = 1;
-	const int paintKernel = 2;
+    const int paintKernel = 2;
     const int foodKernel = 3;
     const int eraseKernel = 4;
     const int clearKernel = 5;
@@ -64,7 +64,7 @@ public class SlimeSimulation : MonoBehaviour
     public RenderTexture nextTrailMap;
     public RenderTexture foodMap;
     
-    public List<SlimeAgent> agents;
+    public List<SlimeAgent> agents = new();
     public HashSet<FoodSource> foodSources = new();
     public SlimeAgent[] agentArray;
     public FoodSource[] foodSourceArray;
@@ -77,7 +77,7 @@ public class SlimeSimulation : MonoBehaviour
     {
         SetFields();
         ToggleBrush();
-        
+
         // Initialize agent, trail, and color buffers
         ComputeUtil.CreateTex(ref viewportTex, settings.vpWidth, settings.vpHeight);
         ComputeUtil.CreateTex(ref trailMap, settings.vpWidth, settings.vpHeight);
@@ -92,7 +92,7 @@ public class SlimeSimulation : MonoBehaviour
         // blur function in compute shader
         computeSim.SetTexture(blurKernel, "TrailMap", trailMap);
         computeSim.SetTexture(blurKernel, "NextTrailMap", nextTrailMap);
-    
+
         // paint canvas function in compute shader
         computeSim.SetTexture(paintKernel, "ViewportTex", viewportTex);
         computeSim.SetTexture(paintKernel, "TrailMap", trailMap);
@@ -108,13 +108,13 @@ public class SlimeSimulation : MonoBehaviour
         // clearing trail, food, and viewport textures (setting to <0,0,0,0>) in compute shader
         ClearAll();
         
-        CreateAgents();
+        Initialize();
 
         SetFood();
 
         ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
         computeSim.SetBuffer(updateKernel, "species", speciesBuffer);
-        computeSim.SetBuffer(paintKernel, "species", speciesBuffer); 
+        computeSim.SetBuffer(paintKernel, "species", speciesBuffer);
 
         computeSim.SetInt("width", settings.vpWidth);
         computeSim.SetInt("height", settings.vpHeight);
@@ -133,72 +133,60 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
-    public void AddAgent(bool randomPos, Vector2 pos) 
+        void Paint()
     {
-        // add a singular agent to the end of the agents list 
-        // initializes agent at a random position if (randomPos). else uses the specified pos 
-        // angle is random, species is hard coded to be 0 for now 
-        float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
-        float randomR = (float)UnityEngine.Random.value * 250;
-        float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
-        float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
-        float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
-
-        Vector2 agentPos = pos; 
-        if (randomPos) {
-            agentPos = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY);
-        }
-
-        agents.Add(new SlimeAgent {
-            position = agentPos,
-            angle = randAngle,
-            speciesID = activeSpecie,
-            hunger = 0
-        });
+        computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
+        computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
 
-    public void CreateAgents()
+    void FixedUpdate()
     {
-        // intialize agent positions within circle 
-        agents = new List<SlimeAgent>(settings.numAgents);
-        for (int i = 0; i < settings.numAgents; i++)
+        if (Input.GetButton("Fire1"))
         {
-            // (int)Math.Floor(2*UnityEngine.Random.value)
-            AddAgent(true, new Vector2());
+            switch (brushType)
+            {
+                case 0:
+                    PlaceFood();
+                    break;
+                case 1:
+                    PlaceSlime();
+                    break;
+                case 2:
+                    Erase();
+                    break;
+            }
         }
 
-        SetAgents();
-    }
-
-    public void BigBang()
-    {
-        agents = new List<SlimeAgent>(settings.numAgents);
-        for (int i = 0; i < settings.numAgents; i++)
+        if (playing)
         {
-            float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
-
-            agents.Add(new SlimeAgent {
-                position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2),
-                angle = randomTheta,
-                speciesID = (int)Mathf.Floor(4 * UnityEngine.Random.value),
-                hunger = 0
-            });
+            for (int i = 0; i < settings.simsPerFrame; i++)
+            {
+                Simulate();
+            }
         }
-        SetAgents();
+
+        UpdateFood();
+        Paint();
     }
 
-    public void SetAgents()
+    void Simulate()
     {
-        agentArray = agents.ToArray();
+        computeSim.SetFloat("dt", Time.fixedDeltaTime);
+        computeSim.SetFloat("time", Time.fixedTime);
 
-        // passing agent data + other uniforms
-        if (agents.Count > 0) 
+        // send species related buffers to shader here, for now just using magic values within compute
+        if (agents != null && agents.Count > 0)
         {
-            ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
-            computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
-            computeSim.SetInt("numAgents", agentArray.Length);
+            computeSim.Dispatch(updateKernel, Mathf.CeilToInt(agentArray.Length / 16.0F), 1, 1);
         }
+
+        computeSim.Dispatch(blurKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        Graphics.Blit(nextTrailMap, trailMap);
     }
+
+    //###########################################################################
+    // Food functions 
+    //###########################################################################
 
     public void GetFood()
     {
@@ -215,7 +203,7 @@ public class SlimeSimulation : MonoBehaviour
         if (foodSources.Count > 0)
         {
             foodSourceArray = new FoodSource[foodSources.Count];
-            foodSources.CopyTo(foodSourceArray);   
+            foodSources.CopyTo(foodSourceArray);
             ComputeUtil.CreateBuffer(ref foodBuffer, foodSourceArray);
             computeSim.SetBuffer(updateKernel, "foodSources", foodBuffer);
             computeSim.SetBuffer(foodKernel, "foodSources", foodBuffer);
@@ -225,7 +213,8 @@ public class SlimeSimulation : MonoBehaviour
         {
             computeSim.SetInt("numFoodSources", 0);
             FoodSource[] dummy = new FoodSource[1];
-            dummy[0] = new FoodSource {
+            dummy[0] = new FoodSource
+            {
                 position = new Vector2(0, 0),
                 attractorStrength = 0.0F,
                 amount = 0
@@ -236,14 +225,170 @@ public class SlimeSimulation : MonoBehaviour
 
     }
 
+    void UpdateFood()
+    {
+        if (foodSources.Count > 0)
+        {
+            ClearFoodTexture();
+            computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
+        }
+    }
+
     //###########################################################################
-    // Toggle Functions for UI Button functionality 
+    // Functions for Agent Initialization 
     //###########################################################################
 
-    public void ToggleBrush() 
+    public void AddAgent(bool randomPos, Vector2 pos)
+    {
+        // add a singular agent to the end of the agents list 
+        // if randomPos, initializes agent at a random position in circle
+        // else use specified pos 
+        float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
+        float randomR = (float)UnityEngine.Random.value * (settings.vpHeight / 2 - 50);
+        float randomOffsetX = Mathf.Cos(randomTheta) * randomR;
+        float randomOffsetY = Mathf.Sin(randomTheta) * randomR;
+        float randAngle = Mathf.PI + Mathf.Atan2(randomOffsetY, randomOffsetX);
+
+        Vector2 agentPos = pos;
+        if (randomPos)
+        {
+            agentPos = new Vector2(settings.vpWidth / 2 + randomOffsetX, settings.vpHeight / 2 + randomOffsetY);
+        }
+
+        agents.Add(new SlimeAgent
+        {
+            position = agentPos,
+            angle = randAngle,
+            speciesID = activeSpecie,
+            hunger = 1
+        });
+    }
+
+    public void SetAgents()
+    {
+        agentArray = agents.ToArray();
+
+        // passing agent data + other uniforms
+        if (agents.Count > 0) 
+        {
+            ComputeUtil.CreateBuffer(ref agentBuffer, agentArray);
+            computeSim.SetBuffer(updateKernel, "slimeAgents", agentBuffer);
+            computeSim.SetInt("numAgents", agentArray.Length);
+        }
+    }
+
+    public void CircleAgents()
+    {
+        // intialize agent positions within circle
+        agents = new List<SlimeAgent>(settings.numAgents);
+        for (int i = 0; i < settings.numAgents; i++)
+        {
+            AddAgent(true, new Vector2());
+        }
+
+        SetAgents();
+    }
+
+    public void BigBang()
+    {
+        agents = new List<SlimeAgent>(settings.numAgents);
+        for (int i = 0; i < settings.numAgents; i++)
+        {
+            float randomTheta = (float)UnityEngine.Random.value * 2 * Mathf.PI;
+
+            agents.Add(new SlimeAgent
+            {
+                position = new Vector2(settings.vpWidth / 2, settings.vpHeight / 2),
+                angle = randomTheta,
+                speciesID = (int)Mathf.Floor(4 * UnityEngine.Random.value),
+                hunger = 1
+            });
+        }
+
+        SetAgents();
+    }
+
+    public void Supernova(bool reset, Vector2 center, int numPoints, int radius, float rotation, int numAgents, int speciesID)
+    {
+        if (reset)
+        {
+            agents = new List<SlimeAgent>(settings.numAgents);
+        }
+
+        float angle = rotation;
+        float angleIncrement = 2 * Mathf.PI / (float)numPoints;
+        int agentsPerPoint = numAgents / numPoints;
+
+        for (int i = 0; i < numPoints; i++)
+        {
+            Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * (radius / (float)agentsPerPoint);
+
+            for (int j = 0; j < agentsPerPoint; j++)
+            {
+                Vector2 agentPos = center + (offset * j);
+
+                agents.Add(new SlimeAgent
+                {
+                    position = agentPos,
+                    angle = angle,
+                    speciesID = speciesID,
+                    hunger = 1
+                });
+            }
+
+            angle += angleIncrement;
+        }
+
+        SetAgents();
+    }
+
+    //###########################################################################
+    // Functions for UI Button functionality
+    //###########################################################################
+
+    public void Initialize() 
+    {
+        intializeType = initializeDropdown.value;
+        switch (intializeType) 
+        {
+            case 0:
+                ClearAll();
+                break;
+            case 1:
+                CircleAgents();
+                break;
+            case 2:
+                BigBang();
+                break;
+            case 3:
+                Supernova(true, new Vector2(256, 256), 80, 200, 0, 100000, 0);
+                break;
+        }
+    }
+
+    public void TogglePlaying()
+    {
+        playing = !playing;
+
+        if (playing)
+        {
+            togglePlayText.SetText("Pause");
+        }
+        else
+        {
+            togglePlayText.SetText("Play");
+        }
+
+        if ((initializeDropdown.value != intializeType) || (agents.Count == 0))
+        {
+            Initialize();
+        }
+    } 
+
+    public void ToggleBrush()
     {
         brushType = brushDropdown.value;
-        switch (brushType) 
+        switch (brushType)
         {
             case 0:
                 brushRadiusField.text = settings.foodSourceSize.ToString();
@@ -257,13 +402,68 @@ public class SlimeSimulation : MonoBehaviour
         }
     }
 
+    public void ToggleSpecie()
+    {
+        activeSpecie = speciesDropdown.value;
+        changingSpecie = true;
+        SetFields();
+        changingSpecie = false;
+    }
+
+    public void SaveImage()
+    {
+        RenderTexture prevTexture = RenderTexture.active;
+        RenderTexture.active = viewportTex;
+
+        Texture2D copyTex = new Texture2D(settings.vpWidth, settings.vpHeight);
+        copyTex.ReadPixels(new Rect(0, 0, viewportTex.width, viewportTex.height), 0, 0);
+        copyTex.Apply();
+
+        RenderTexture.active = prevTexture;
+
+        string path = Application.persistentDataPath + "/" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".png";
+        Debug.Log(path);
+        byte[] imageData = copyTex.EncodeToPNG();
+        File.WriteAllBytes(path, imageData);
+    }
+
+    //###########################################################################
+    // Changing and updating species characteristics 
+    //###########################################################################
+
+    public void SetFields()
+    {
+        sensorAngleField.text = settings.species[activeSpecie].sensorAngle.ToString("0.000");
+        rotationAngleField.text = settings.species[activeSpecie].rotationAngle.ToString("0.000");
+        sensorDistanceField.text = settings.species[activeSpecie].sensorDist.ToString("0.000");
+        trailWeightField.text = settings.species[activeSpecie].trailWeight.ToString("0.000");
+        velocityField.text = settings.species[activeSpecie].velocity.ToString("0.000");
+        hungerDecayField.text = settings.species[activeSpecie].hungerDecayRate.ToString("0.000");
+        rField.text = settings.species[activeSpecie].color[0].ToString("0.00");
+        gField.text = settings.species[activeSpecie].color[1].ToString("0.00");
+        bField.text = settings.species[activeSpecie].color[2].ToString("0.00");
+    }
+
+    bool ValidField(string field)
+    {
+        try
+        {
+            float.Parse(field);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public void UpdateRadii()
     {
         if (ValidField(brushRadiusField.text))
         {
             int radius = (int)MathF.Round(float.Parse(brushRadiusField.text));
-            switch (brushType) 
-            {  
+            switch (brushType)
+            {
                 case 0:
                     settings.foodSourceSize = radius;
                     computeSim.SetInt("foodSourceSize", settings.foodSourceSize);
@@ -296,73 +496,6 @@ public class SlimeSimulation : MonoBehaviour
             settings.diffuseRate = float.Parse(trailDiffuseField.text);
             computeSim.SetFloat("diffuseRate", settings.diffuseRate);
         }
-    }
-
-    public void TogglePlaying()
-    {
-        playing = !playing;
-
-        if (playing)
-        {
-            togglePlayText.SetText("Pause");
-        }
-        else
-        {
-            togglePlayText.SetText("Play");
-        }
-    } 
-
-    public void ToggleSpecie()
-    {
-        activeSpecie = speciesDropdown.value;
-        changingSpecie = true;
-        SetFields();
-        changingSpecie = false;
-    }
-
-    public void SaveImage()
-    {
-        RenderTexture prevTexture = RenderTexture.active;
-        RenderTexture.active = viewportTex;
-
-        Texture2D copyTex = new Texture2D(settings.vpWidth, settings.vpHeight);
-        copyTex.ReadPixels(new Rect(0, 0, viewportTex.width, viewportTex.height), 0, 0);
-        copyTex.Apply();
-
-        RenderTexture.active = prevTexture;
-
-        string path = Application.persistentDataPath + "/" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".png";
-        Debug.Log(path);
-        byte[] imageData = copyTex.EncodeToPNG();
-        File.WriteAllBytes(path, imageData);
-    }
-
-    //###########################################################################
-
-    public void SetFields()
-    {
-        sensorAngleField.text = settings.species[activeSpecie].sensorAngle.ToString("0.000");
-        rotationAngleField.text = settings.species[activeSpecie].rotationAngle.ToString("0.000");
-        sensorDistanceField.text = settings.species[activeSpecie].sensorDist.ToString("0.000");
-        trailWeightField.text = settings.species[activeSpecie].trailWeight.ToString("0.000");
-        velocityField.text = settings.species[activeSpecie].velocity.ToString("0.000");
-        hungerDecayField.text = settings.species[activeSpecie].hungerDecayRate.ToString("0.000");
-        rField.text = settings.species[activeSpecie].color[0].ToString("0.00");
-        gField.text = settings.species[activeSpecie].color[1].ToString("0.00");
-        bField.text = settings.species[activeSpecie].color[2].ToString("0.00");
-    }
-
-    bool ValidField(string field)
-    {
-        try
-        {
-            float.Parse(field);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }   
     }
 
     public void UpdateSpecie()
@@ -406,44 +539,15 @@ public class SlimeSimulation : MonoBehaviour
                 1.0F
             );
         }
-        
+
         ComputeUtil.CreateBuffer(ref speciesBuffer, settings.species);
         computeSim.SetBuffer(updateKernel, "species", speciesBuffer);
-        computeSim.SetBuffer(paintKernel, "species", speciesBuffer); 
+        computeSim.SetBuffer(paintKernel, "species", speciesBuffer);
     }
 
-    void FixedUpdate()
-    {
-        if (Input.GetButton("Fire1")) {
-            switch (brushType)
-            {
-                case 0:
-                    PlaceFood();
-                    break;
-                case 1: 
-                    PlaceSlime();
-                    break;
-                case 2: 
-                    Erase();
-                    break;
-            }
-        }
-
-        if (playing)
-        {
-            for (int i = 0; i < settings.simsPerFrame; i++) 
-            {
-                Simulate();
-            }
-        }
-
-        // if left mouse button was clicked
-        
-        UpdateFood();
-
-        Paint();
-    }
-
+    //###########################################################################
+    // Brush functionality 
+    //###########################################################################
 
     void PlaceFood()
     {
@@ -486,33 +590,33 @@ public class SlimeSimulation : MonoBehaviour
         bool clickInCanvas = viewport.rectTransform.rect.Contains(canvasPos);
 
         // get current agent data from the gpu
-        if (agents.Count > 0) 
+        if (agents != null && agents.Count > 0) 
         {
             agentBuffer.GetData(agentArray);
-        }
 
-        // update cpu's current agent data
-        for (int i = 0; i < agents.Count; i++)
-        {
-            agents[i] = agentArray[i];
+            // update cpu's current agent data
+            for (int i = 0; i < agents.Count; i++)
+            {
+                agents[i] = agentArray[i];
+            }
         }
 
         // add agents to the cpu's list of agents if user clicked within canvas
-        if (clickInCanvas) 
+        if (clickInCanvas)
         {
             int startX = (int)clickPos[0] - settings.slimeBrushRadius;
             int startY = (int)clickPos[1] - settings.slimeBrushRadius;
             int endX = (int)clickPos[0] + settings.slimeBrushRadius + 1;
             int endY = (int)clickPos[1] + settings.slimeBrushRadius + 1;
 
-            for (int y = startY; y < endY; y++)  
+            for (int y = startY; y < endY; y++)
             {
-                for (int x = startX; x < endX; x++) 
+                for (int x = startX; x < endX; x++)
                 {
                     Vector2 currPos = new Vector2(x, y);
                     bool inRadius = ((currPos - clickPos).magnitude <= settings.slimeBrushRadius);
 
-                    if (inRadius && (UnityEngine.Random.value * 100 < settings.slimeBrushDensity)) 
+                    if (inRadius && (UnityEngine.Random.value * 100 < settings.slimeBrushDensity))
                     {
                         AddAgent(false, currPos);
                     }
@@ -552,9 +656,9 @@ public class SlimeSimulation : MonoBehaviour
         }
 
         // remove agents from the cpu's list of agents if it is within the erase brush 
-        for (int i = 0; i < agents.Count; i++) 
+        for (int i = 0; i < agents.Count; i++)
         {
-            if ((agents[i].position - clickPos).magnitude <= settings.eraseBrushRadius) 
+            if ((agents[i].position - clickPos).magnitude <= settings.eraseBrushRadius)
             {
                 agents.RemoveAt(i);
                 i--;
@@ -573,27 +677,29 @@ public class SlimeSimulation : MonoBehaviour
         Paint();
     }
 
+    //###########################################################################
+    // Clear functions 
+    //###########################################################################
+
     public void ClearAll()
     {
         computeSim.SetTexture(clearKernel, "ClearTexture", trailMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-        
+
         ClearFood();
 
-        if (agents != null) 
+        if (agents != null)
         {
             agents.Clear();
             SetAgents();
         }
-
-        
     }
 
     public void ClearFood()
     {
         ClearFoodTexture();
 
-        if (foodSources.Count != 0) 
+        if (foodSources.Count != 0)
         {
             foodSources.Clear();
             SetFood();
@@ -605,37 +711,6 @@ public class SlimeSimulation : MonoBehaviour
         computeSim.SetTexture(clearKernel, "ClearTexture", foodMap);
         computeSim.Dispatch(clearKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
     }
-
-    void Paint() 
-    {
-        computeSim.SetTexture(paintKernel, "FoodMap", foodMap);
-        computeSim.Dispatch(paintKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-    }
-
-    void UpdateFood()
-    {
-        if (foodSources.Count > 0)
-        {
-            ClearFoodTexture();
-            computeSim.Dispatch(foodKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-        }
-    }
-
-    void Simulate()
-    {
-        computeSim.SetFloat("dt", Time.fixedDeltaTime);
-        computeSim.SetFloat("time", Time.fixedTime);
-
-        // send species related buffers to shader here, for now just using magic values within compute
-        if (agents != null && agents.Count > 0) 
-        {
-            computeSim.Dispatch(updateKernel, Mathf.CeilToInt(agentArray.Length / 16.0F), 1, 1);
-        }
-
-        computeSim.Dispatch(blurKernel, settings.vpWidth / 8, settings.vpHeight / 8, 1);
-        Graphics.Blit(nextTrailMap, trailMap);
-    }
-
 
     // Called when the attached Object is destroyed.
     void OnDestroy()

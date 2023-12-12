@@ -6803,9 +6803,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewport: {fileID: 1055386107}
-  playing: 0
+  intializeType: 0
+  initializeDropdown: {fileID: 2139669868}
   brushType: 0
   brushDropdown: {fileID: 64869952}
+  playing: 0
   togglePlayText: {fileID: 1235937129}
   settings: {fileID: 11400000, guid: f93fe4d94fca14dc89c47a23f8500457, type: 2}
   brushRadiusField: {fileID: 1753924606}
@@ -12822,15 +12824,25 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Circle
       m_Image: {fileID: 0}
-    - m_Text: Corners
+    - m_Text: Big Bang
       m_Image: {fileID: 0}
-    - m_Text: Firework
-      m_Image: {fileID: 0}
-    - m_Text: Star
+    - m_Text: Starburst
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1154561991}
+        m_TargetAssemblyTypeName: SlimeSimulation, Assembly-CSharp
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &2139669869
 MonoBehaviour:
