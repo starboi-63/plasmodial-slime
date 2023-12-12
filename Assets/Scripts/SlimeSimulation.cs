@@ -361,10 +361,10 @@ public class SlimeSimulation : MonoBehaviour
                 BigBang();
                 break;
             case 3:
-                Supernova(true, new Vector2(256, 256), 20, 10, 0 * (float)Math.PI / 40F, 25000, 0);
-                Supernova(false, new Vector2(256, 256), 20, 10, 1 * (float)Math.PI / 40F, 25000, 1);
-                Supernova(false, new Vector2(256, 256), 20, 10, 2 * (float)Math.PI / 40F, 25000, 2);
-                Supernova(false, new Vector2(256, 256), 20, 10, 3 * (float)Math.PI / 40F, 25000, 3);
+                Supernova(true, new Vector2(256, 256), 20, 10, 0 * (float)Math.PI / 40F, settings.numAgents / 4, 0);
+                Supernova(false, new Vector2(256, 256), 20, 10, 1 * (float)Math.PI / 40F, settings.numAgents / 4, 1);
+                Supernova(false, new Vector2(256, 256), 20, 10, 2 * (float)Math.PI / 40F, settings.numAgents / 4, 2);
+                Supernova(false, new Vector2(256, 256), 20, 10, 3 * (float)Math.PI / 40F, settings.numAgents / 4, 3);
                 break;
         }
     }
