@@ -576,7 +576,6 @@ public class SlimeSimulation : MonoBehaviour
                 GetFood();
                 foodSources.Add(newFoodSource);
                 SetFood();
-
             }
         }
     }
