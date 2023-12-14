@@ -2,9 +2,21 @@
 
 By Praccho Muna-McQuay, Alaina Lin, and Tanish Makadia; submitted for CSCI 1230 (Computer Graphics) final project at Brown University.
 
-- Inspired by Sebastian Lague's YouTube [video](https://youtu.be/X-iSQQgOd1A).
+- Inspired by Sebastian Lague's [Coding Adventure: Ant and Slime Simulations](https://youtu.be/X-iSQQgOd1A).
 - Agent behavior implemented based on [Characteristics of pattern formation and evolution in approximations of physarum transport networks](https://uwe-repository.worktribe.com/output/980579) (Jones).
 - Food behavior implemented based on [Stepwise slime mould growth as a template for urban design](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8789834/) (Kay, Hatton).
+
+## Features
+
+1. **Slime agents** modeling behavior of plasmodial slime molds like _physarum polycephalum_.
+   - support for up to four **different slime species** at once.
+2. **Foraging behavior** based on an attractor-field of **food sources**.
+   - optional **depletion** of food sources with slime agent interactions.
+3. **Brushes** to paint food/slime and to erase material on the canvas.
+4. **Starting seed library** to begin the simulation, including a "circle," "big-bang," and "starburst".
+5. **Rapid** simulation supporting over 1-million concurrent slime agents.
+   - utilization of **compute shaders** in Unity to accelerate simulations using parallel computations on the GPU.
+6. **Customizable** parameters for nearly every aspect of the simulation displayed on an interactive GUI.
 
 ## How to Run
 
