@@ -1,6 +1,7 @@
 # Plasmodial Slime Growth Simulation
 
 By Praccho Muna-McQuay, Alaina Lin, and Tanish Makadia; submitted for CSCI 1230 (Computer Graphics) final project at Brown University.
+>If you're interested in the math used to model the simulation's slime foraging behavior, consider visiting the [project website](https://tanishmakadia.com/projects/slime-simulation).
 
 - Inspired by Sebastian Lague's [Coding Adventure: Ant and Slime Simulations](https://youtu.be/X-iSQQgOd1A).
 - Agent behavior implemented based on [Characteristics of pattern formation and evolution in approximations of physarum transport networks](https://uwe-repository.worktribe.com/output/980579) (Jones).
